@@ -13,23 +13,35 @@ export default function AdminLogin() {
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
+        console.log("Tentando login...")
         setLoading(true)
         setError('')
 
         try {
+            console.log("Supabase URL:", process.env.NEXT_PUBLIC_SUPABASE_URL)
+
             const { data, error } = await supabase.auth.signInWithPassword({
                 email,
                 password
             })
 
+            console.log("Resposta Supabase:", { data, error })
+
             if (error) throw error
 
             if (data.session) {
+                console.log("Sessão obtida, redirecionando...")
+                // alert("Login bem sucedido! Redirecionando...")
                 router.refresh()
                 router.push('/admin/dashboard')
+            } else {
+                console.warn("Sem sessão na resposta de dados")
+                setError("Login falhou: Sessão não criada")
             }
         } catch (err: any) {
+            console.error("Erro no login:", err)
             setError(err.message || 'Erro ao fazer login')
+            // alert("Erro: " + (err.message || 'Erro desconhecido'))
         } finally {
             setLoading(false)
         }
