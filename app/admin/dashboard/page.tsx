@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase, Order } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase-browser'
+import { Order } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import ProductsManager from '@/components/admin/ProductsManager'
 import CategoriesManager from '@/components/admin/CategoriesManager'
