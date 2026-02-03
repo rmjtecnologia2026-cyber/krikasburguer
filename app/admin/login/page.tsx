@@ -25,6 +25,7 @@ export default function AdminLogin() {
             if (error) throw error
 
             if (data.session) {
+                router.refresh()
                 router.push('/admin/dashboard')
             }
         } catch (err: any) {
