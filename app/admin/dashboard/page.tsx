@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { supabase, Order } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import ProductsManager from '@/components/admin/ProductsManager'
+import CategoriesManager from '@/components/admin/CategoriesManager'
+import BannersManager from '@/components/admin/BannersManager'
 
 export default function AdminDashboard() {
     const router = useRouter()
@@ -264,23 +266,11 @@ export default function AdminDashboard() {
                 )}
 
                 {activeTab === 'categories' && (
-                    <div className="bg-white rounded-2xl shadow-lg p-8">
-                        <h2 className="text-2xl font-bold text-gray-800 mb-4">Gerenciar Categorias</h2>
-                        <p className="text-gray-600">
-                            Funcionalidade de CRUD de categorias será implementada aqui.
-                            Por enquanto, você pode gerenciar categorias diretamente no Supabase.
-                        </p>
-                    </div>
+                    <CategoriesManager />
                 )}
 
                 {activeTab === 'banners' && (
-                    <div className="bg-white rounded-2xl shadow-lg p-8">
-                        <h2 className="text-2xl font-bold text-gray-800 mb-4">Gerenciar Banners</h2>
-                        <p className="text-gray-600">
-                            Funcionalidade de CRUD de banners será implementada aqui.
-                            Por enquanto, você pode gerenciar banners diretamente no Supabase.
-                        </p>
-                    </div>
+                    <BannersManager />
                 )}
             </div>
         </div>
