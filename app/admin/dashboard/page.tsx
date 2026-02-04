@@ -219,6 +219,29 @@ export default function AdminDashboard() {
         }
     }
 
+    const handleDeleteOrder = async () => {
+        if (!cancelingOrder) return
+        if (!confirm('⚠️ ATENÇÃO: Deletar este pedido PERMANENTEMENTE? Esta ação NÃO pode ser desfeita!')) return
+
+        try {
+            const { error } = await supabase
+                .from('orders')
+                .delete()
+                .eq('id', cancelingOrder)
+
+            if (error) throw error
+
+            // Remove from local state
+            setOrders(current => current.filter(order => order.id !== cancelingOrder))
+            setCancelingOrder(null)
+            setCancelReason('')
+            alert('✅ Pedido deletado com sucesso!')
+        } catch (error: any) {
+            console.error('Error deleting order:', error)
+            alert(`❌ Erro ao deletar: ${error.message}\n\nVocê executou o script fix_delete_orders_v2.sql no Supabase?`)
+        }
+    }
+
     // Status helpers not strictly needed for Kanban but good to keep if valid
 
     return (
@@ -241,20 +264,36 @@ export default function AdminDashboard() {
                         onUpdate={fetchOrders}
                     />
                 )}
-                {/* Cancel Modal */}
+                {/* Cancel/Delete Modal */}
                 {cancelingOrder && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
                         <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
-                            <h2 className="text-xl font-bold text-gray-800 mb-4">Cancelar Pedido</h2>
+                            <h2 className="text-xl font-bold text-gray-800 mb-4">Cancelar ou Deletar Pedido</h2>
                             <textarea
                                 className="w-full border p-3 rounded-lg mb-4"
-                                placeholder="Motivo..."
+                                placeholder="Motivo do cancelamento (opcional para deletar)..."
                                 value={cancelReason}
                                 onChange={e => setCancelReason(e.target.value)}
                             />
-                            <div className="flex gap-2">
-                                <button onClick={() => setCancelingOrder(null)} className="flex-1 py-2 bg-gray-100 rounded-lg">Voltar</button>
-                                <button onClick={handleCancelOrder} className="flex-1 py-2 bg-red-600 text-white rounded-lg">Confirmar</button>
+                            <div className="flex flex-col gap-2">
+                                <button
+                                    onClick={() => setCancelingOrder(null)}
+                                    className="w-full py-2 bg-gray-100 rounded-lg hover:bg-gray-200"
+                                >
+                                    Voltar
+                                </button>
+                                <button
+                                    onClick={handleCancelOrder}
+                                    className="w-full py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 font-semibold"
+                                >
+                                    ⚠️ Cancelar (mantém no histórico)
+                                </button>
+                                <button
+                                    onClick={handleDeleteOrder}
+                                    className="w-full py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold"
+                                >
+                                    🗑️ Deletar Permanentemente
+                                </button>
                             </div>
                         </div>
                     </div>
