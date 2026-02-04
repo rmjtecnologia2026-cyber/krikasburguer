@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase-browser'
 import { Category } from '@/lib/supabase'
 
@@ -17,6 +17,23 @@ export default function CategoryForm({ category, onSave, onCancel }: CategoryFor
         slug: category?.slug || '',
         order: category?.order || 0,
     })
+
+    // Atualizar formData quando category mudar
+    useEffect(() => {
+        if (category) {
+            setFormData({
+                name: category.name,
+                slug: category.slug,
+                order: category.order,
+            })
+        } else {
+            setFormData({
+                name: '',
+                slug: '',
+                order: 0,
+            })
+        }
+    }, [category])
 
     const generateSlug = (name: string) => {
         return name
