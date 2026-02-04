@@ -3,7 +3,7 @@
 import { useCart } from '@/context/CartContext'
 import { useState } from 'react'
 import Image from 'next/image'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase-browser'
 
 export default function Cart() {
     const { items, removeItem, updateQuantity, clearCart, total, itemCount } = useCart()
@@ -22,6 +22,8 @@ export default function Cart() {
         setLoading(true)
 
         try {
+            console.log('Iniciando envio do pedido...', { formData, items })
+
             // Criar pedido
             const { data: order, error: orderError } = await supabase
                 .from('orders')
@@ -36,7 +38,12 @@ export default function Cart() {
                 .select()
                 .single()
 
-            if (orderError) throw orderError
+            if (orderError) {
+                console.error('Erro Supabase (Order):', orderError)
+                throw new Error(`Erro ao criar pedido: ${orderError.message}`)
+            }
+
+            console.log('Pedido criado:', order)
 
             // Criar itens do pedido
             const orderItems = items.map(item => ({
@@ -52,7 +59,10 @@ export default function Cart() {
                 .from('order_items')
                 .insert(orderItems)
 
-            if (itemsError) throw itemsError
+            if (itemsError) {
+                console.error('Erro Supabase (Items):', itemsError)
+                throw new Error(`Erro ao adicionar itens: ${itemsError.message}`)
+            }
 
             // Sucesso
             alert('Pedido realizado com sucesso! Aguarde a confirmação.')
@@ -60,9 +70,9 @@ export default function Cart() {
             setIsCheckout(false)
             setIsOpen(false)
             setFormData({ name: '', phone: '', address: '', observations: '' })
-        } catch (error) {
-            console.error('Erro ao criar pedido:', error)
-            alert('Erro ao realizar pedido. Tente novamente.')
+        } catch (error: any) {
+            console.error('Erro detalhado ao criar pedido:', error)
+            alert(error.message || 'Erro ao realizar pedido. Tente novamente.')
         } finally {
             setLoading(false)
         }
