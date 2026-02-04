@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase-browser'
 import { Order } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
@@ -23,6 +23,7 @@ export default function AdminDashboard() {
     const [editingOrder, setEditingOrder] = useState<string | null>(null)
     const [cancelingOrder, setCancelingOrder] = useState<string | null>(null)
     const [cancelReason, setCancelReason] = useState('')
+    const notificationAudioRef = useRef<HTMLAudioElement | null>(null)
 
     useEffect(() => {
         checkAuth()
@@ -89,9 +90,17 @@ export default function AdminDashboard() {
 
     const playNotificationSound = () => {
         try {
-            // Criar e tocar o áudio
+            // Parar áudio anterior se existir
+            if (notificationAudioRef.current) {
+                notificationAudioRef.current.pause()
+                notificationAudioRef.current.currentTime = 0
+            }
+
+            // Criar e tocar o áudio em LOOP
             const audio = new Audio('/sounds/notification.mp3')
             audio.volume = 1.0
+            audio.loop = true // LOOP INFINITO até parar manualmente
+            notificationAudioRef.current = audio
 
             // Tentar tocar imediatamente
             const playPromise = audio.play()
@@ -99,7 +108,7 @@ export default function AdminDashboard() {
             if (playPromise !== undefined) {
                 playPromise
                     .then(() => {
-                        console.log('🔊 Som tocado com sucesso')
+                        console.log('🔊 Som tocando em loop')
                     })
                     .catch(e => {
                         console.log('⚠️ Erro ao tocar som:', e)
@@ -135,6 +144,15 @@ export default function AdminDashboard() {
             }
         } catch (error) {
             console.error('❌ Erro ao criar áudio:', error)
+        }
+    }
+
+    const stopNotificationSound = () => {
+        if (notificationAudioRef.current) {
+            notificationAudioRef.current.pause()
+            notificationAudioRef.current.currentTime = 0
+            notificationAudioRef.current = null
+            console.log('🔇 Som parado')
         }
     }
 
@@ -276,13 +294,13 @@ export default function AdminDashboard() {
 
                             <div className="flex gap-4">
                                 <button
-                                    onClick={() => setNewOrderAlert(false)}
+                                    onClick={() => { stopNotificationSound(); setNewOrderAlert(false) }}
                                     className="flex-1 py-3 bg-gray-200 hover:bg-gray-300 rounded-xl font-bold transition-colors"
                                 >
                                     Ver Depois
                                 </button>
                                 <button
-                                    onClick={() => { updateOrderStatus(orders[0].id, 'em_preparo'); setNewOrderAlert(false) }}
+                                    onClick={() => { stopNotificationSound(); updateOrderStatus(orders[0].id, 'em_preparo'); setNewOrderAlert(false) }}
                                     className="flex-1 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold transition-colors"
                                 >
                                     ✅ ACEITAR
