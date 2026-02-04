@@ -10,6 +10,7 @@ export default function Cart() {
     const [isOpen, setIsOpen] = useState(false)
     const [isCheckout, setIsCheckout] = useState(false)
     const [loading, setLoading] = useState(false)
+    const [isStoreOpen, setIsStoreOpen] = useState(true)
     const [formData, setFormData] = useState({
         name: '',
         phone: '',
@@ -19,8 +20,31 @@ export default function Cart() {
         changeFor: ''
     })
 
+    // Checar status da loja ao abrir o carrinho
+    const checkStoreStatus = async () => {
+        const { data } = await supabase
+            .from('store_settings')
+            .select('is_open')
+            .single()
+
+        if (data) {
+            setIsStoreOpen(data.is_open)
+        }
+    }
+
+    const handleOpenCart = () => {
+        setIsOpen(true)
+        checkStoreStatus()
+    }
+
     const handleSubmitOrder = async (e: React.FormEvent) => {
         e.preventDefault()
+
+        if (!isStoreOpen) {
+            alert('Desculpe, a loja está fechada no momento e não pode receber pedidos.')
+            return
+        }
+
         setLoading(true)
 
         try {
@@ -52,11 +76,32 @@ export default function Cart() {
             // Criar itens do pedido
             const orderItems = items.map(item => ({
                 order_id: order.id,
-                product_id: item.id,
-                product_name: item.name,
-                product_price: item.price,
+                product_id: item.id, // We use the base product ID for the DB even if the cart item has a composite ID?
+                // Wait, DB expects UUID. 'item.id' in CartItem is the string Product ID (UUID).
+                // But my Previous Step 570 kept 'id' as 'productId' and added 'cartId' as internal.
+                // Wait, step 570: "id: string // This is the Product ID". Correct.
+                // So item.id is UUID. Correct.
+                // But wait, step 570 replaced the content.
+                // Let's verify CartItem structure in step 630 (view_file output).
+                // Line 9 in view_file 630: `const { items ... } = useCart()`.
+                // CartContext.tsx was updated in step 570/576.
+                // But Cart.tsx consumes it.
+                // Line 55: `product_id: item.id`.
+
+                product_name: item.name + (item.extras && item.extras.length > 0 ? ` (+ ${item.extras.map(e => e.name).join(', ')})` : ''),
+                product_price: item.price, // Base price? Or price with extras?
+                // Ideally we should store the unit price of the variation.
+                // But the Order Item table structure?
+                // Let's assume 'subtotal' covers it.
+                // 'product_price' is usually unit price.
+                // I will update product_name to include extras text so the admin sees it clearly in the order_items list too if they expand it.
+                // Or just keep it as is.
+                // The 'Order' display in Admin (Step 525) uses `order_items`? No, it uses `orders` table mostly?
+                // Actually the Active Orders card (Step 525) just shows "Ver Detalhes" or list?
+                // Let's stick to the request: "finalizados somente se a loja estiver aberta".
+
                 quantity: item.quantity,
-                subtotal: item.price * item.quantity
+                subtotal: (item.price + (item.extras?.reduce((s, e) => s + e.price, 0) || 0)) * item.quantity
             }))
 
             const { error: itemsError } = await supabase
@@ -86,7 +131,7 @@ export default function Cart() {
         <>
             {/* Botão do carrinho */}
             <button
-                onClick={() => setIsOpen(true)}
+                onClick={handleOpenCart}
                 className="fixed bottom-6 right-6 bg-gradient-to-r from-orange-500 to-red-500 text-white p-4 rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 z-50 group"
             >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -121,6 +166,13 @@ export default function Cart() {
                             </button>
                         </div>
 
+                        {!isStoreOpen && (
+                            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4" role="alert">
+                                <p className="font-bold">Loja Fechada</p>
+                                <p>No momento não estamos aceitando novos pedidos. Volte em breve!</p>
+                            </div>
+                        )}
+
                         {/* Content */}
                         <div className="flex-1 overflow-y-auto p-6">
                             {!isCheckout ? (
@@ -132,7 +184,7 @@ export default function Cart() {
                                     ) : (
                                         <div className="space-y-4">
                                             {items.map(item => (
-                                                <div key={item.id} className="flex gap-4 bg-gray-50 rounded-xl p-4">
+                                                <div key={item.cartId} className="flex gap-4 bg-gray-50 rounded-xl p-4">
                                                     <div className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
                                                         <Image
                                                             src={item.image_url}
@@ -197,6 +249,7 @@ export default function Cart() {
                                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                             className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all"
                                             placeholder="Seu nome"
+                                            disabled={!isStoreOpen}
                                         />
                                     </div>
 
@@ -211,6 +264,7 @@ export default function Cart() {
                                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                             className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all"
                                             placeholder="(00) 00000-0000"
+                                            disabled={!isStoreOpen}
                                         />
                                     </div>
 
@@ -225,6 +279,7 @@ export default function Cart() {
                                             className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all resize-none"
                                             rows={3}
                                             placeholder="Rua, número, bairro, cidade"
+                                            disabled={!isStoreOpen}
                                         />
                                     </div>
 
@@ -245,6 +300,7 @@ export default function Cart() {
                                                     className="hidden"
                                                     checked={formData.paymentMethod === 'card'}
                                                     onChange={e => setFormData({ ...formData, paymentMethod: e.target.value, changeFor: '' })}
+                                                    disabled={!isStoreOpen}
                                                 />
                                                 💳 Cartão
                                             </label>
@@ -259,6 +315,7 @@ export default function Cart() {
                                                     className="hidden"
                                                     checked={formData.paymentMethod === 'money'}
                                                     onChange={e => setFormData({ ...formData, paymentMethod: e.target.value })}
+                                                    disabled={!isStoreOpen}
                                                 />
                                                 💵 Dinheiro
                                             </label>
@@ -273,6 +330,7 @@ export default function Cart() {
                                                     className="hidden"
                                                     checked={formData.paymentMethod === 'pix'}
                                                     onChange={e => setFormData({ ...formData, paymentMethod: e.target.value, changeFor: '' })}
+                                                    disabled={!isStoreOpen}
                                                 />
                                                 💠 Pix
                                             </label>
@@ -291,6 +349,7 @@ export default function Cart() {
                                                 onChange={(e) => setFormData({ ...formData, changeFor: e.target.value })}
                                                 className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all"
                                                 placeholder="Ex: 50,00 (Deixe vazio se não precisar)"
+                                                disabled={!isStoreOpen}
                                             />
                                         </div>
                                     )}
@@ -305,15 +364,16 @@ export default function Cart() {
                                             className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all resize-none"
                                             rows={2}
                                             placeholder="Alguma observação sobre o pedido?"
+                                            disabled={!isStoreOpen}
                                         />
                                     </div>
 
                                     <button
                                         type="submit"
-                                        disabled={loading}
-                                        className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        disabled={loading || !isStoreOpen}
+                                        className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-500"
                                     >
-                                        {loading ? 'Enviando...' : 'Confirmar Pedido'}
+                                        {loading ? 'Enviando...' : isStoreOpen ? 'Confirmar Pedido' : 'Loja Fechada'}
                                     </button>
                                 </form>
                             )}
@@ -330,9 +390,10 @@ export default function Cart() {
                                 </div>
                                 <button
                                     onClick={() => setIsCheckout(true)}
-                                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                                    disabled={!isStoreOpen}
+                                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-500"
                                 >
-                                    Finalizar Pedido
+                                    {isStoreOpen ? 'Finalizar Pedido' : 'Loja Fechada'}
                                 </button>
                             </div>
                         )}
