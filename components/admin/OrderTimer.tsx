@@ -3,11 +3,11 @@
 import { useState, useEffect } from 'react'
 import { Order } from '@/lib/supabase'
 
-export default function OrderTimer({ order }: { order: Order }) {
+export default function OrderTimer({ order }: { order: Order | undefined | null }) {
     const [elapsed, setElapsed] = useState(0)
 
     useEffect(() => {
-        // Se ordem ou accepted_at não existem, não faz nada
+        // Se ordem ou accepted_at não existem, zera e retorna
         if (!order || !order.accepted_at) {
             setElapsed(0)
             return
@@ -17,8 +17,6 @@ export default function OrderTimer({ order }: { order: Order }) {
 
         // Se já foi finalizado, calcular tempo total fixo e parar
         if (order.status === 'finalizado') {
-            // Usando updated_at como data de finalização (aproximação)
-            // Se updated_at não existir, usa Date.now() como fallback
             const endTime = order.updated_at ? new Date(order.updated_at).getTime() : new Date().getTime()
             const totalDuration = Math.max(0, Math.floor((endTime - startTime) / 1000))
             setElapsed(totalDuration)
@@ -38,6 +36,9 @@ export default function OrderTimer({ order }: { order: Order }) {
         return () => clearInterval(interval)
     }, [order?.accepted_at, order?.status, order?.updated_at])
 
+    // Se não tiver ordem ou data de aceite, não renderiza nada
+    if (!order || !order.accepted_at) return null
+
     const formatTime = (seconds: number) => {
         const h = Math.floor(seconds / 3600)
         const m = Math.floor((seconds % 3600) / 60)
@@ -54,8 +55,6 @@ export default function OrderTimer({ order }: { order: Order }) {
     } else {
         colorClass = 'bg-blue-50 text-blue-700 border border-blue-100' // Finalizado
     }
-
-    if (!order || !order.accepted_at) return null
 
     return (
         <div className={`text-xs font-mono py-1 px-2 rounded flex items-center gap-1 ${colorClass}`}>
