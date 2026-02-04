@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase, Product, Category } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase-browser'
+import { Product, Category } from '@/lib/supabase'
 
 interface ProductFormProps {
     product?: Product | null
@@ -13,6 +14,7 @@ interface ProductFormProps {
 
 export default function ProductForm({ product, categories, extrasGroups = [], onSave, onCancel }: ProductFormProps) {
     const [loading, setLoading] = useState(false)
+    const [uploading, setUploading] = useState(false)
     const [selectedExtras, setSelectedExtras] = useState<string[]>([])
     const [formData, setFormData] = useState({
         name: product?.name || '',
@@ -41,6 +43,74 @@ export default function ProductForm({ product, categories, extrasGroups = [], on
         if (data) {
             setSelectedExtras(data.map(d => d.group_id))
         }
+    }
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        // Validar tipo de arquivo
+        if (!file.type.startsWith('image/')) {
+            alert('Por favor, selecione apenas arquivos de imagem')
+            return
+        }
+
+        // Validar tamanho (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('A imagem deve ter no máximo 5MB')
+            return
+        }
+
+        setUploading(true)
+
+        try {
+            // Gerar nome único para o arquivo
+            const fileExt = file.name.split('.').pop()
+            const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
+            const filePath = `${fileName}`
+
+            // Upload para o Supabase Storage
+            const { data, error } = await supabase.storage
+                .from('products')
+                .upload(filePath, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                })
+
+            if (error) throw error
+
+            // Obter URL pública da imagem
+            const { data: { publicUrl } } = supabase.storage
+                .from('products')
+                .getPublicUrl(filePath)
+
+            setFormData({ ...formData, image_url: publicUrl })
+        } catch (error) {
+            console.error('Erro ao fazer upload:', error)
+            alert('Erro ao fazer upload da imagem. Tente novamente.')
+        } finally {
+            setUploading(false)
+        }
+    }
+
+    const handleRemoveImage = async () => {
+        if (!formData.image_url) return
+
+        // Se a imagem está no Supabase Storage, deletar
+        if (formData.image_url.includes('supabase')) {
+            try {
+                const urlParts = formData.image_url.split('/')
+                const fileName = urlParts[urlParts.length - 1]
+
+                await supabase.storage
+                    .from('products')
+                    .remove([fileName])
+            } catch (error) {
+                console.error('Erro ao deletar imagem:', error)
+            }
+        }
+
+        setFormData({ ...formData, image_url: '' })
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -188,25 +258,45 @@ export default function ProductForm({ product, categories, extrasGroups = [], on
                     )}
 
                     <div className="col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">URL da Imagem</label>
-                        <input
-                            type="url"
-                            value={formData.image_url}
-                            onChange={e => setFormData({ ...formData, image_url: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
-                            placeholder="https://..."
-                        />
-                        {formData.image_url && (
-                            <div className="mt-2 text-center bg-gray-50 p-2 rounded-lg">
-                                <span className="text-xs text-gray-500 mb-1 block">Pré-visualização:</span>
-                                <img
-                                    src={formData.image_url}
-                                    alt="Preview"
-                                    className="h-32 mx-auto object-contain rounded-lg shadow-sm"
-                                    onError={(e) => (e.currentTarget.style.display = 'none')}
-                                />
-                            </div>
-                        )}
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Imagem do Produto</label>
+                        <div className="space-y-3">
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageUpload}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"
+                            />
+                            {uploading && (
+                                <div className="text-sm text-orange-600 flex items-center gap-2">
+                                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                    </svg>
+                                    Fazendo upload...
+                                </div>
+                            )}
+                            {formData.image_url && (
+                                <div className="relative">
+                                    <div className="mt-2 text-center bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                        <span className="text-xs text-gray-500 mb-2 block">Pré-visualização:</span>
+                                        <img
+                                            src={formData.image_url}
+                                            alt="Preview"
+                                            className="h-40 mx-auto object-contain rounded-lg shadow-sm"
+                                            onError={(e) => (e.currentTarget.style.display = 'none')}
+                                        />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={handleRemoveImage}
+                                        className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors shadow-lg"
+                                        title="Remover imagem"
+                                    >
+                                        🗑️
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     <div className="col-span-2 flex gap-6 p-4 bg-gray-50 rounded-xl">
