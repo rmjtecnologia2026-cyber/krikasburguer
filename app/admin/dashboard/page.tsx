@@ -332,13 +332,25 @@ export default function AdminDashboard() {
                         </button>
                     </header>
 
+
                     {activeTab === 'orders' && (
-                        <OrderKanban
-                            orders={orders}
-                            onStatusUpdate={updateOrderStatus}
-                            onEdit={setEditingOrder}
-                            onCancel={(id) => { setCancelingOrder(id); setCancelReason('') }}
-                        />
+                        <>
+                            <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                <p className="text-sm text-blue-800">
+                                    📅 <strong>Exibindo apenas pedidos de hoje</strong> • Pedidos anteriores estão no Histórico
+                                </p>
+                            </div>
+                            <OrderKanban
+                                orders={orders.filter(order => {
+                                    const orderDate = new Date(order.created_at)
+                                    const today = new Date()
+                                    return orderDate.toDateString() === today.toDateString()
+                                })}
+                                onStatusUpdate={updateOrderStatus}
+                                onEdit={setEditingOrder}
+                                onCancel={(id) => { setCancelingOrder(id); setCancelReason('') }}
+                            />
+                        </>
                     )}
 
                     {activeTab === 'history' && (
