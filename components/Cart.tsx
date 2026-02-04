@@ -114,7 +114,7 @@ export default function Cart() {
             }
 
             // Sucesso
-            alert('Pedido realizado com sucesso! Aguarde a confirmação.')
+            alert(`✅ Pedido #${order.order_number} realizado com sucesso!\n\nAguarde a confirmação via WhatsApp.`)
             clearCart()
             setIsCheckout(false)
             setIsOpen(false)
