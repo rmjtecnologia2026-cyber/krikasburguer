@@ -72,9 +72,9 @@ export default function CategoryForm({ category, onSave, onCancel }: CategoryFor
                 if (error) throw error
             }
             onSave()
-        } catch (error) {
+        } catch (error: any) {
             console.error('Erro ao salvar:', error)
-            alert('Erro ao salvar categoria.')
+            alert(`Erro ao salvar categoria: ${error.message || error}`)
         } finally {
             setLoading(false)
         }
