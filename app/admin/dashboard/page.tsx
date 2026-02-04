@@ -25,6 +25,7 @@ export default function AdminDashboard() {
     const [editingOrder, setEditingOrder] = useState<string | null>(null)
     const [cancelingOrder, setCancelingOrder] = useState<string | null>(null)
     const [cancelReason, setCancelReason] = useState('')
+    const [adminPassword, setAdminPassword] = useState('')
     const notificationAudioRef = useRef<HTMLAudioElement | null>(null)
 
     useEffect(() => {
@@ -195,7 +196,16 @@ export default function AdminDashboard() {
 
     // Reuse existing handleCancelOrder
     const handleCancelOrder = async () => {
-        if (!cancelingOrder || !cancelReason.trim()) return
+        if (!cancelingOrder || !cancelReason.trim()) {
+            alert('⚠️ Por favor, informe o motivo do cancelamento')
+            return
+        }
+
+        // Validar senha de administrador
+        if (adminPassword !== '123456') {
+            alert('❌ Senha de administrador incorreta!')
+            return
+        }
 
         const { error } = await supabase
             .from('orders')
@@ -214,6 +224,8 @@ export default function AdminDashboard() {
             )
             setCancelingOrder(null)
             setCancelReason('')
+            setAdminPassword('')
+            alert('✅ Pedido cancelado com sucesso!')
         } else {
             alert('Erro ao cancelar pedido')
         }
@@ -221,6 +233,13 @@ export default function AdminDashboard() {
 
     const handleDeleteOrder = async () => {
         if (!cancelingOrder) return
+
+        // Validar senha de administrador
+        if (adminPassword !== '123456') {
+            alert('❌ Senha de administrador incorreta!')
+            return
+        }
+
         if (!confirm('⚠️ ATENÇÃO: Deletar este pedido PERMANENTEMENTE? Esta ação NÃO pode ser desfeita!')) return
 
         try {
@@ -235,6 +254,7 @@ export default function AdminDashboard() {
             setOrders(current => current.filter(order => order.id !== cancelingOrder))
             setCancelingOrder(null)
             setCancelReason('')
+            setAdminPassword('')
             alert('✅ Pedido deletado com sucesso!')
         } catch (error: any) {
             console.error('Error deleting order:', error)
@@ -268,17 +288,42 @@ export default function AdminDashboard() {
                 {cancelingOrder && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
                         <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
-                            <h2 className="text-xl font-bold text-gray-800 mb-4">Cancelar ou Deletar Pedido</h2>
-                            <textarea
-                                className="w-full border p-3 rounded-lg mb-4"
-                                placeholder="Motivo do cancelamento (opcional para deletar)..."
-                                value={cancelReason}
-                                onChange={e => setCancelReason(e.target.value)}
-                            />
+                            <h2 className="text-xl font-bold text-gray-800 mb-4">🔒 Cancelar ou Deletar Pedido</h2>
+
+                            <div className="space-y-3 mb-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Motivo do Cancelamento</label>
+                                    <textarea
+                                        className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                                        placeholder="Descreva o motivo..."
+                                        value={cancelReason}
+                                        onChange={e => setCancelReason(e.target.value)}
+                                        rows={3}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-red-700 mb-1">🔐 Senha de Administrador *</label>
+                                    <input
+                                        type="password"
+                                        className="w-full border border-red-300 p-3 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50"
+                                        placeholder="Digite a senha de administrador"
+                                        value={adminPassword}
+                                        onChange={e => setAdminPassword(e.target.value)}
+                                        autoFocus
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">* Obrigatório para cancelar ou deletar</p>
+                                </div>
+                            </div>
+
                             <div className="flex flex-col gap-2">
                                 <button
-                                    onClick={() => setCancelingOrder(null)}
-                                    className="w-full py-2 bg-gray-100 rounded-lg hover:bg-gray-200"
+                                    onClick={() => {
+                                        setCancelingOrder(null)
+                                        setCancelReason('')
+                                        setAdminPassword('')
+                                    }}
+                                    className="w-full py-2 bg-gray-100 rounded-lg hover:bg-gray-200 font-medium"
                                 >
                                     Voltar
                                 </button>
