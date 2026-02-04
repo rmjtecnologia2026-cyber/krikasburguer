@@ -17,7 +17,7 @@ export default async function Home() {
     .select('*, category:categories(*)')
     .eq('is_active', true)
     .eq('is_featured', true)
-    .limit(6)
+    .limit(10)
 
   // Buscar todos os produtos ativos
   const { data: allProducts } = await supabase

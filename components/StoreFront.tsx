@@ -65,9 +65,9 @@ export default function StoreFront({ categories, featuredProducts, productsByCat
                             <span className="text-xl">⭐</span>
                             <h2 className="text-xl font-bold text-gray-800">Destaques</h2>
                         </div>
-                        <div className="flex overflow-x-auto gap-4 hide-scrollbar pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                        <div className="flex overflow-x-auto gap-4 pb-4 -mx-4 px-4 snap-x snap-mandatory hide-scrollbar touch-pan-x">
                             {featuredProducts.map(product => (
-                                <div key={product.id} className="min-w-[200px] md:min-w-[240px]">
+                                <div key={product.id} className="min-w-[280px] md:min-w-[320px] snap-center first:pl-0 last:pr-4">
                                     <ProductCard product={product} />
                                 </div>
                             ))}
