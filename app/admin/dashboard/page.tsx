@@ -7,6 +7,8 @@ import { useRouter } from 'next/navigation'
 import OrderEditor from '@/components/admin/OrderEditor'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import OrderKanban from '@/components/admin/OrderKanban'
+import OrderHistory from '@/components/admin/OrderHistory'
+import FinancialDashboard from '@/components/admin/FinancialDashboard'
 import ProductsManager from '@/components/admin/ProductsManager'
 import CategoriesManager from '@/components/admin/CategoriesManager'
 import BannersManager from '@/components/admin/BannersManager'
@@ -340,27 +342,11 @@ export default function AdminDashboard() {
                     )}
 
                     {activeTab === 'history' && (
-                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                            <h3 className="font-bold mb-4">Histórico Completo</h3>
-                            {/* Simple list for history */}
-                            <div className="space-y-4">
-                                {orders.filter(o => o.status === 'finalizado' || o.status === 'cancelado').map(order => (
-                                    <div key={order.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
-                                        <div>
-                                            <p className="font-bold">{order.customer_name}</p>
-                                            <p className="text-xs text-gray-500">{new Date(order.created_at).toLocaleString('pt-BR')}</p>
-                                            {order.status === 'cancelado' && <span className="text-xs text-red-500">Cancelado: {order.cancellation_reason}</span>}
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="font-bold text-gray-700">R$ {order.total.toFixed(2)}</p>
-                                            <span className={`text-xs px-2 py-1 rounded-full ${order.status === 'finalizado' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                                {order.status}
-                                            </span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+                        <OrderHistory orders={orders} />
+                    )}
+
+                    {activeTab === 'financeiro' && (
+                        <FinancialDashboard orders={orders} />
                     )}
 
                     {activeTab === 'products' && <ProductsManager />}

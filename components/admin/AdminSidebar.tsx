@@ -14,6 +14,7 @@ export default function AdminSidebar({ activeTab, setActiveTab, onLogout }: Admi
     const menuItems = [
         { id: 'orders', label: 'Gestor de Pedidos', icon: '🛎️' },
         { id: 'history', label: 'Histórico', icon: '📜' },
+        { id: 'financeiro', label: 'Financeiro', icon: '💰' },
         { id: 'products', label: 'Produtos', icon: '🍕' },
         { id: 'extras', label: 'Complementos', icon: '➕' },
         { id: 'categories', label: 'Categorias', icon: '📁' },
