@@ -51,13 +51,20 @@ export default function AdminDashboard() {
         localStorage.setItem('krikas_printer_config', JSON.stringify(config))
     }
 
-    const handlePrintOrder = (order: Order) => {
-        setPrintingOrder(order)
+    const handlePrintOrder = async (order: Order) => {
+        // Buscar itens do pedido
+        const { data: items } = await supabase
+            .from('order_items')
+            .select('*')
+            .eq('order_id', order.id)
+
+        // Criar objeto completo com itens
+        const fullOrder = { ...order, items: items || [] }
+
+        setPrintingOrder(fullOrder)
         // Pequeno delay para garantir renderização antes de imprimir
         setTimeout(() => {
             window.print()
-            // Limpar depois de imprimir (opcional, mas bom pra resetar estado)
-            // setPrintingOrder(null) 
         }, 500)
     }
 
@@ -475,13 +482,11 @@ export default function AdminDashboard() {
                     />
 
                     {/* Hidden Ticket Component for Printing */}
-                    <div className="hidden">
-                        <OrderTicket
-                            ref={ticketRef}
-                            order={printingOrder}
-                            paperSize={printerConfig.paperSize}
-                        />
-                    </div>
+                    <OrderTicket
+                        ref={ticketRef}
+                        order={printingOrder}
+                        paperSize={printerConfig.paperSize}
+                    />
 
 
                     {activeTab === 'orders' && (
