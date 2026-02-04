@@ -53,6 +53,7 @@ export type Order = {
   change_for?: string
   cancellation_reason?: string
   updated_at?: string
+  order_number?: number
 }
 
 export type OrderItem = {

@@ -44,10 +44,17 @@ export default function OrderKanban({ orders, onStatusUpdate, onEdit, onCancel }
                             <div key={order.id} className="bg-white p-3 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                                 <div className="flex justify-between items-start mb-1.5">
                                     <div className="flex-1">
-                                        <h4 className="font-bold text-gray-800 text-sm">{order.customer_name}</h4>
-                                        <OrderTimer acceptedAt={order.accepted_at} status={order.status} />
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <span className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded text-[10px] font-bold">
+                                                #{order.order_number || '?'}
+                                            </span>
+                                            <h4 className="font-bold text-gray-800 text-sm truncate">{order.customer_name}</h4>
+                                        </div>
+                                        <OrderTimer order={order} />
                                     </div>
-                                    <span className="text-orange-600 font-bold text-xs">R$ {order.total.toFixed(2)}</span>
+                                    <div className="flex flex-col items-end">
+                                        <span className="text-orange-600 font-bold text-xs">R$ {order.total.toFixed(2)}</span>
+                                    </div>
                                 </div>
                                 <p className="text-[11px] text-gray-500 mb-1.5 line-clamp-1">{order.delivery_address}</p>
 

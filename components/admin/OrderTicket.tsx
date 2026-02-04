@@ -62,8 +62,10 @@ export const OrderTicket = React.forwardRef<HTMLDivElement, OrderTicketProps>(({
                 {/* Cabeçalho */}
                 <div className="text-center border-b-2 border-dashed border-black pb-2 mb-2">
                     <h1 className="font-bold text-lg uppercase">Krikas Burguer</h1>
-                    <p className="text-[10px] mt-1">Pedido #{order.id.slice(0, 8)}</p>
-                    <p className="text-[10px]">{new Date(order.created_at).toLocaleString('pt-BR')}</p>
+                    <div className="my-1 border-2 border-black rounded p-1 inline-block">
+                        <p className="text-xl font-bold">Nº {order.order_number || '?'}</p>
+                    </div>
+                    <p className="text-[10px] mt-1">{new Date(order.created_at).toLocaleString('pt-BR')}</p>
                 </div>
 
                 {/* Cliente */}
