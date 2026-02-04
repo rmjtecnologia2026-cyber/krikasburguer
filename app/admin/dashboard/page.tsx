@@ -88,8 +88,21 @@ export default function AdminDashboard() {
     }
 
     const playNotificationSound = () => {
-        const audio = new Audio('/sounds/notification.mp3')
-        audio.play().catch(e => console.log('Could not play sound:', e))
+        try {
+            const audio = new Audio('/sounds/notification.mp3')
+            audio.volume = 1.0 // Volume máximo
+            audio.play()
+                .then(() => console.log('🔊 Som tocado com sucesso'))
+                .catch(e => {
+                    console.log('⚠️ Erro ao tocar som:', e)
+                    // Tentar novamente após interação do usuário
+                    document.addEventListener('click', () => {
+                        audio.play().catch(() => { })
+                    }, { once: true })
+                })
+        } catch (error) {
+            console.error('❌ Erro ao criar áudio:', error)
+        }
     }
 
     const handleLogout = async () => {
@@ -188,11 +201,51 @@ export default function AdminDashboard() {
                 {/* New Order Alert */}
                 {newOrderAlert && orders.length > 0 && orders[0].status === 'novo' && (
                     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                        <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-8 relative">
-                            <h2 className="text-3xl font-bold text-center mb-4">🔔 Novo Pedido!</h2>
+                        <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-8 relative animate-bounce">
+                            <div className="text-center mb-6">
+                                <div className="text-6xl mb-4 animate-pulse">🔔</div>
+                                <h2 className="text-3xl font-bold text-orange-600 mb-2">Novo Pedido!</h2>
+                            </div>
+
+                            {/* Detalhes do Pedido */}
+                            <div className="bg-gray-50 rounded-2xl p-6 mb-6 text-left">
+                                <div className="mb-3">
+                                    <p className="text-sm text-gray-500">Cliente</p>
+                                    <p className="text-xl font-bold text-gray-800">{orders[0].customer_name}</p>
+                                </div>
+                                <div className="mb-3">
+                                    <p className="text-sm text-gray-500">Telefone</p>
+                                    <p className="text-lg font-semibold text-gray-700">{orders[0].customer_phone}</p>
+                                </div>
+                                <div className="mb-3">
+                                    <p className="text-sm text-gray-500">Endereço</p>
+                                    <p className="text-base text-gray-700">{orders[0].delivery_address}</p>
+                                </div>
+                                {orders[0].observations && (
+                                    <div className="mb-3">
+                                        <p className="text-sm text-gray-500">Observações</p>
+                                        <p className="text-base text-gray-700 italic">"{orders[0].observations}"</p>
+                                    </div>
+                                )}
+                                <div className="pt-3 border-t border-gray-200">
+                                    <p className="text-sm text-gray-500">Total</p>
+                                    <p className="text-2xl font-bold text-orange-600">R$ {orders[0].total.toFixed(2)}</p>
+                                </div>
+                            </div>
+
                             <div className="flex gap-4">
-                                <button onClick={() => setNewOrderAlert(false)} className="flex-1 py-3 bg-gray-200 rounded-xl font-bold">Fechar</button>
-                                <button onClick={() => { updateOrderStatus(orders[0].id, 'em_preparo'); setNewOrderAlert(false) }} className="flex-1 py-3 bg-blue-500 text-white rounded-xl font-bold">ACEITAR</button>
+                                <button
+                                    onClick={() => setNewOrderAlert(false)}
+                                    className="flex-1 py-3 bg-gray-200 hover:bg-gray-300 rounded-xl font-bold transition-colors"
+                                >
+                                    Ver Depois
+                                </button>
+                                <button
+                                    onClick={() => { updateOrderStatus(orders[0].id, 'em_preparo'); setNewOrderAlert(false) }}
+                                    className="flex-1 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold transition-colors"
+                                >
+                                    ✅ ACEITAR
+                                </button>
                             </div>
                         </div>
                     </div>
