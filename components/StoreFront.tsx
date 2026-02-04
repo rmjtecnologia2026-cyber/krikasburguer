@@ -65,9 +65,9 @@ export default function StoreFront({ categories, featuredProducts, productsByCat
                             <span className="text-xl">⭐</span>
                             <h2 className="text-xl font-bold text-gray-800">Destaques</h2>
                         </div>
-                        <div className="flex overflow-x-auto gap-4 pb-4 -mx-4 px-4 snap-x snap-proximity hide-scrollbar touch-pan-x">
+                        <div className="flex overflow-x-auto gap-4 pb-4 -mx-4 px-4 hide-scrollbar touch-pan-x">
                             {featuredProducts.map(product => (
-                                <div key={product.id} className="min-w-[280px] md:min-w-[320px] snap-center first:pl-0 last:pr-4">
+                                <div key={product.id} className="min-w-[280px] md:min-w-[320px] first:pl-0 last:pr-4">
                                     <ProductCard product={product} variant="vertical" />
                                 </div>
                             ))}
