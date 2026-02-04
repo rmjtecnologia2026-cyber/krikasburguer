@@ -4,12 +4,14 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase-browser'
 import { Order } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
-// ... (imports remain)
 import OrderEditor from '@/components/admin/OrderEditor'
-
-// ... imports
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import OrderKanban from '@/components/admin/OrderKanban'
+import ProductsManager from '@/components/admin/ProductsManager'
+import CategoriesManager from '@/components/admin/CategoriesManager'
+import BannersManager from '@/components/admin/BannersManager'
+import StoreSettings from '@/components/admin/StoreSettings'
+import ExtrasManager from '@/components/admin/ExtrasManager'
 
 export default function AdminDashboard() {
     const router = useRouter()
@@ -61,6 +63,21 @@ export default function AdminDashboard() {
                     setOrders(current => [payload.new as Order, ...current])
                     setNewOrderAlert(true)
                     playNotificationSound()
+                }
+            )
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'orders'
+                },
+                (payload) => {
+                    setOrders(current =>
+                        current.map(order =>
+                            order.id === payload.new.id ? payload.new as Order : order
+                        )
+                    )
                 }
             )
             .subscribe()
