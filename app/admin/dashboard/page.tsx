@@ -98,12 +98,19 @@ export default function AdminDashboard() {
     }
 
     const updateOrderStatus = async (orderId: string, newStatus: string) => {
-        const { error } = await supabase
+        console.log('🔄 Atualizando pedido:', orderId, 'para status:', newStatus)
+
+        const { data, error } = await supabase
             .from('orders')
             .update({ status: newStatus })
             .eq('id', orderId)
+            .select()
 
-        if (!error) {
+        if (error) {
+            console.error('❌ Erro ao atualizar status:', error)
+            alert('Erro ao atualizar status: ' + error.message)
+        } else {
+            console.log('✅ Status atualizado com sucesso:', data)
             setOrders(current =>
                 current.map(order =>
                     order.id === orderId ? { ...order, status: newStatus as any } : order
