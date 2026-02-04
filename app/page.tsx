@@ -35,18 +35,6 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-orange-600 to-red-600 text-white shadow-xl sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-6">
-          <h1 className="text-3xl md:text-4xl font-bold text-center">
-            🍕 Delivery Express
-          </h1>
-          <p className="text-center text-orange-100 mt-2">
-            Peça agora e receba em casa!
-          </p>
-        </div>
-      </header>
-
       <div className="container mx-auto px-4 py-8">
         {/* Banner Promocional */}
         <Banner />
@@ -61,7 +49,7 @@ export default async function Home() {
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {featuredProducts.map(product => (
                 <ProductCard key={product.id} product={product} />
               ))}
@@ -88,7 +76,7 @@ export default async function Home() {
                 </h2>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {products.map(product => (
                   <ProductCard key={product.id} product={product} />
                 ))}
