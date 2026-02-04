@@ -1,60 +1,69 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
+import { Order } from '@/lib/supabase'
 
-type OrderTimerProps = {
-    acceptedAt: string | null | undefined
-    status: string
-}
-
-export default function OrderTimer({ acceptedAt, status }: OrderTimerProps) {
-    const [elapsedTime, setElapsedTime] = useState<string>('00:00')
+export default function OrderTimer({ order }: { order: Order }) {
+    const [elapsed, setElapsed] = useState(0)
 
     useEffect(() => {
-        if (!acceptedAt || status === 'novo' || status === 'finalizado' || status === 'cancelado') {
-            setElapsedTime('00:00')
+        // Se não foi aceito ainda, tempo é 0
+        if (!order.accepted_at) {
+            setElapsed(0)
             return
         }
 
-        const updateTimer = () => {
-            const start = new Date(acceptedAt).getTime()
-            const now = Date.now()
-            const diff = Math.floor((now - start) / 1000) // diferença em segundos
+        const startTime = new Date(order.accepted_at).getTime()
 
-            const minutes = Math.floor(diff / 60)
-            const seconds = diff % 60
-
-            setElapsedTime(`${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`)
+        // Se já foi finalizado, calcular tempo total fixo e parar
+        if (order.status === 'finalizado') {
+            // Usando updated_at como data de finalização (aproximação)
+            // Se updated_at não existir, usa Date.now() como fallback (não ideal, mas evita crash)
+            const endTime = order.updated_at ? new Date(order.updated_at).getTime() : new Date().getTime()
+            const totalDuration = Math.max(0, Math.floor((endTime - startTime) / 1000))
+            setElapsed(totalDuration)
+            return // Não inicia intervalo
         }
 
-        // Atualizar imediatamente
-        updateTimer()
+        // Se está em andamento, atualiza a cada segundo
+        const updateTimer = () => {
+            const now = new Date().getTime()
+            const diffInSeconds = Math.floor((now - startTime) / 1000)
+            setElapsed(Math.max(0, diffInSeconds))
+        }
 
-        // Atualizar a cada segundo
+        updateTimer() // Update imediato
         const interval = setInterval(updateTimer, 1000)
 
         return () => clearInterval(interval)
-    }, [acceptedAt, status])
+    }, [order.accepted_at, order.status, order.updated_at])
 
-    if (!acceptedAt || status === 'novo') {
-        return null
+    const formatTime = (seconds: number) => {
+        const h = Math.floor(seconds / 3600)
+        const m = Math.floor((seconds % 3600) / 60)
+        const s = seconds % 60
+        return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
     }
 
-    // Cores baseadas no tempo
-    const getColorClass = () => {
-        const [minutes] = elapsedTime.split(':').map(Number)
-
-        if (minutes < 15) return 'text-green-600 bg-green-50'
-        if (minutes < 30) return 'text-yellow-600 bg-yellow-50'
-        return 'text-red-600 bg-red-50'
+    // Cores baseadas no tempo (urgência) - Só aplica se não estiver finalizado
+    let colorClass = 'bg-gray-100 text-gray-600'
+    if (order.status !== 'finalizado') {
+        if (elapsed > 3600) colorClass = 'bg-red-100 text-red-700 animate-pulse' // > 1 hora
+        else if (elapsed > 1800) colorClass = 'bg-orange-100 text-orange-700' // > 30 min
+        else colorClass = 'bg-green-100 text-green-700'
+    } else {
+        colorClass = 'bg-blue-50 text-blue-700 border border-blue-100' // Finalizado
     }
+
+    if (!order.accepted_at) return null
 
     return (
-        <div className={`text-xs font-bold px-2 py-1 rounded ${getColorClass()} flex items-center gap-1`}>
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            {elapsedTime}
+        <div className={`text-xs font-mono py-1 px-2 rounded flex items-center gap-1 ${colorClass}`}>
+            <span>⏱</span>
+            <span className="font-bold">
+                {formatTime(elapsed)}
+            </span>
+            {order.status === 'finalizado' && <span className="text-[10px] ml-1">(Total)</span>}
         </div>
     )
 }

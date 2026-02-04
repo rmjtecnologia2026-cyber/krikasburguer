@@ -52,6 +52,7 @@ export type Order = {
   payment_method?: string
   change_for?: string
   cancellation_reason?: string
+  updated_at?: string
 }
 
 export type OrderItem = {

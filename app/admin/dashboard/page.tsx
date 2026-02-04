@@ -13,7 +13,8 @@ import ProductsManager from '@/components/admin/ProductsManager'
 import CategoriesManager from '@/components/admin/CategoriesManager'
 import BannersManager from '@/components/admin/BannersManager'
 import StoreSettings from '@/components/admin/StoreSettings'
-import ExtrasManager from '@/components/admin/ExtrasManager'
+import PrinterConfig from '@/components/admin/PrinterConfig'
+import { OrderTicket } from '@/components/admin/OrderTicket'
 
 export default function AdminDashboard() {
     const router = useRouter()
@@ -27,6 +28,38 @@ export default function AdminDashboard() {
     const [cancelReason, setCancelReason] = useState('')
     const [adminPassword, setAdminPassword] = useState('')
     const notificationAudioRef = useRef<HTMLAudioElement | null>(null)
+
+    // Printer Config
+    const [showPrinterConfig, setShowPrinterConfig] = useState(false)
+    const [printerConfig, setPrinterConfig] = useState<{ paperSize: '58mm' | '80mm', autoPrint: boolean }>({
+        paperSize: '80mm',
+        autoPrint: true
+    })
+    const [printingOrder, setPrintingOrder] = useState<Order | null>(null)
+    const ticketRef = useRef<HTMLDivElement>(null)
+
+    // Carregar config do localStorage
+    useEffect(() => {
+        const savedConfig = localStorage.getItem('krikas_printer_config')
+        if (savedConfig) {
+            setPrinterConfig(JSON.parse(savedConfig))
+        }
+    }, [])
+
+    const savePrinterConfig = (config: any) => {
+        setPrinterConfig(config)
+        localStorage.setItem('krikas_printer_config', JSON.stringify(config))
+    }
+
+    const handlePrintOrder = (order: Order) => {
+        setPrintingOrder(order)
+        // Pequeno delay para garantir renderização antes de imprimir
+        setTimeout(() => {
+            window.print()
+            // Limpar depois de imprimir (opcional, mas bom pra resetar estado)
+            // setPrintingOrder(null) 
+        }, 500)
+    }
 
     useEffect(() => {
         checkAuth()
@@ -191,6 +224,15 @@ export default function AdminDashboard() {
                     order.id === orderId ? { ...order, ...updateData } : order
                 )
             )
+
+            // Impressão Automática ao Aceitar (Status: novo -> em_preparo)
+            if (newStatus === 'em_preparo' && printerConfig.autoPrint) {
+                const orderToPrint = orders.find(o => o.id === orderId)
+                if (orderToPrint) {
+                    console.log('🖨️ Iniciando impressão automática...')
+                    handlePrintOrder(orderToPrint)
+                }
+            }
         }
     }
 
@@ -406,15 +448,40 @@ export default function AdminDashboard() {
                             </h2>
                             <p className="text-gray-500 text-sm">Gerencie seu delivery por aqui.</p>
                         </div>
-                        {/* Notification Button Test */}
-                        <button
-                            onClick={playNotificationSound}
-                            className="bg-white p-2 rounded-full shadow-sm text-gray-400 hover:text-blue-500"
-                            title="Testar Som"
-                        >
-                            🔊
-                        </button>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setShowPrinterConfig(true)}
+                                className="bg-white p-2 rounded-full shadow-sm text-gray-400 hover:text-orange-500 transition-colors"
+                                title="Configurar Impressora"
+                            >
+                                🖨️
+                            </button>
+                            <button
+                                onClick={playNotificationSound}
+                                className="bg-white p-2 rounded-full shadow-sm text-gray-400 hover:text-blue-500 transition-colors"
+                                title="Testar Som"
+                            >
+                                🔊
+                            </button>
+                        </div>
                     </header>
+
+                    {/* Printer Configuration Modal */}
+                    <PrinterConfig
+                        isOpen={showPrinterConfig}
+                        onClose={() => setShowPrinterConfig(false)}
+                        config={printerConfig}
+                        onSave={savePrinterConfig}
+                    />
+
+                    {/* Hidden Ticket Component for Printing */}
+                    <div className="hidden">
+                        <OrderTicket
+                            ref={ticketRef}
+                            order={printingOrder}
+                            paperSize={printerConfig.paperSize}
+                        />
+                    </div>
 
 
                     {activeTab === 'orders' && (
