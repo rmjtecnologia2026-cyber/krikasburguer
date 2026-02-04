@@ -187,7 +187,7 @@ export default function AdminDashboard() {
 
             <div className="container mx-auto px-4 py-8">
                 {/* Tabs */}
-                <div className="bg-white rounded-2xl shadow-lg p-2 mb-8 flex gap-2 overflow-x-auto">
+                <div className="bg-white rounded-2xl shadow-lg p-2 mb-8 flex flex-wrap gap-2">
                     <button
                         onClick={() => setActiveTab('orders')}
                         className={`px-6 py-3 rounded-xl font-semibold transition-all whitespace-nowrap ${activeTab === 'orders'
