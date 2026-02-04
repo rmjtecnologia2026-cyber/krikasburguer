@@ -441,36 +441,4 @@ export default function AdminDashboard() {
     )
 }
 
-{
-    activeTab === 'products' && (
-        <ProductsManager />
-    )
-}
 
-{
-    activeTab === 'categories' && (
-        <CategoriesManager />
-    )
-}
-
-{
-    activeTab === 'banners' && (
-        <BannersManager />
-    )
-}
-
-{
-    activeTab === 'settings' && (
-        <StoreSettings />
-    )
-}
-
-{
-    activeTab === 'extras' && (
-        <ExtrasManager />
-    )
-}
-            </div >
-        </div >
-    )
-}
