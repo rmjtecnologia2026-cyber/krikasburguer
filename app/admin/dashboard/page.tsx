@@ -146,9 +146,17 @@ export default function AdminDashboard() {
     const updateOrderStatus = async (orderId: string, newStatus: string) => {
         console.log('🔄 Atualizando pedido:', orderId, 'para status:', newStatus)
 
+        // Preparar dados para atualização
+        const updateData: any = { status: newStatus }
+
+        // Se está aceitando o pedido (mudando para em_preparo), salvar o timestamp
+        if (newStatus === 'em_preparo') {
+            updateData.accepted_at = new Date().toISOString()
+        }
+
         const { data, error } = await supabase
             .from('orders')
-            .update({ status: newStatus })
+            .update(updateData)
             .eq('id', orderId)
             .select()
 
@@ -159,7 +167,7 @@ export default function AdminDashboard() {
             console.log('✅ Status atualizado com sucesso:', data)
             setOrders(current =>
                 current.map(order =>
-                    order.id === orderId ? { ...order, status: newStatus as any } : order
+                    order.id === orderId ? { ...order, ...updateData } : order
                 )
             )
         }

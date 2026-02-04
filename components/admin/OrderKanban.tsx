@@ -1,6 +1,7 @@
 'use client'
 
 import { Order } from '@/lib/supabase'
+import OrderTimer from './OrderTimer'
 
 interface OrderKanbanProps {
     orders: Order[]
@@ -42,7 +43,10 @@ export default function OrderKanban({ orders, onStatusUpdate, onEdit, onCancel }
                         {getOrdersByStatus(col.id).map(order => (
                             <div key={order.id} className="bg-white p-3 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                                 <div className="flex justify-between items-start mb-1.5">
-                                    <h4 className="font-bold text-gray-800 text-sm">{order.customer_name}</h4>
+                                    <div className="flex-1">
+                                        <h4 className="font-bold text-gray-800 text-sm">{order.customer_name}</h4>
+                                        <OrderTimer acceptedAt={order.accepted_at} status={order.status} />
+                                    </div>
                                     <span className="text-orange-600 font-bold text-xs">R$ {order.total.toFixed(2)}</span>
                                 </div>
                                 <p className="text-[11px] text-gray-500 mb-1.5 line-clamp-1">{order.delivery_address}</p>

@@ -48,6 +48,7 @@ export type Order = {
   total: number
   status: OrderStatus
   created_at: string
+  accepted_at?: string | null
   payment_method?: string
   change_for?: string
   cancellation_reason?: string
