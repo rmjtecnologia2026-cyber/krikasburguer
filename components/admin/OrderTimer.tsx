@@ -7,8 +7,8 @@ export default function OrderTimer({ order }: { order: Order }) {
     const [elapsed, setElapsed] = useState(0)
 
     useEffect(() => {
-        // Se não foi aceito ainda, tempo é 0
-        if (!order.accepted_at) {
+        // Se ordem ou accepted_at não existem, não faz nada
+        if (!order || !order.accepted_at) {
             setElapsed(0)
             return
         }
@@ -18,7 +18,7 @@ export default function OrderTimer({ order }: { order: Order }) {
         // Se já foi finalizado, calcular tempo total fixo e parar
         if (order.status === 'finalizado') {
             // Usando updated_at como data de finalização (aproximação)
-            // Se updated_at não existir, usa Date.now() como fallback (não ideal, mas evita crash)
+            // Se updated_at não existir, usa Date.now() como fallback
             const endTime = order.updated_at ? new Date(order.updated_at).getTime() : new Date().getTime()
             const totalDuration = Math.max(0, Math.floor((endTime - startTime) / 1000))
             setElapsed(totalDuration)
@@ -36,7 +36,7 @@ export default function OrderTimer({ order }: { order: Order }) {
         const interval = setInterval(updateTimer, 1000)
 
         return () => clearInterval(interval)
-    }, [order.accepted_at, order.status, order.updated_at])
+    }, [order?.accepted_at, order?.status, order?.updated_at])
 
     const formatTime = (seconds: number) => {
         const h = Math.floor(seconds / 3600)
@@ -55,7 +55,7 @@ export default function OrderTimer({ order }: { order: Order }) {
         colorClass = 'bg-blue-50 text-blue-700 border border-blue-100' // Finalizado
     }
 
-    if (!order.accepted_at) return null
+    if (!order || !order.accepted_at) return null
 
     return (
         <div className={`text-xs font-mono py-1 px-2 rounded flex items-center gap-1 ${colorClass}`}>
