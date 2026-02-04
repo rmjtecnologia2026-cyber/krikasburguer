@@ -1,0 +1,22 @@
+SISTEMA ATUALIZADO ✅
+
+1. POPUP DE PEDIDOS:
+   - Aparece automaticamente no centro da tela.
+   - Toca som (Verifique se o volume está ligado e clique em "Testar Som" se necessário).
+   - Tem botão de 'Aceitar Pedido'.
+
+2. LAYOUT:
+   - 4 colunas no PC (Cliente e Admin).
+
+3. PAGAMENTO:
+   - Opções: Dinheiro (c/ troco), Pix, Cartão.
+   - Exibido no card do pedido e no popup.
+
+⚠️ IMPORTANTE PARA FUNCIONAR:
+Para salvar os pagamentos no banco de dados e evitar erros, você PRECISA executar o script SQL de atualização.
+Siga os passos:
+1. Copie o conteúdo do arquivo 'update_schema_payment.sql'.
+2. Vá no Supabase > SQL Editor via navegador.
+3. Cole e execute (Run).
+
+OBS: Se o som não tocar automaticamente, é bloqueio do navegador. Clique em qualquer lugar na página ou no botão de som para liberar.
