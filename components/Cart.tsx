@@ -11,6 +11,7 @@ export default function Cart() {
     const [isCheckout, setIsCheckout] = useState(false)
     const [loading, setLoading] = useState(false)
     const [isStoreOpen, setIsStoreOpen] = useState(true)
+    const [openingHours, setOpeningHours] = useState('')
     const [formData, setFormData] = useState({
         name: '',
         phone: '',
@@ -24,11 +25,12 @@ export default function Cart() {
     const checkStoreStatus = async () => {
         const { data } = await supabase
             .from('store_settings')
-            .select('is_open')
+            .select('is_open, opening_hours')
             .single()
 
         if (data) {
             setIsStoreOpen(data.is_open)
+            if (data.opening_hours) setOpeningHours(data.opening_hours)
         }
     }
 
@@ -167,9 +169,20 @@ export default function Cart() {
                         </div>
 
                         {!isStoreOpen && (
-                            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4" role="alert">
-                                <p className="font-bold">Loja Fechada</p>
-                                <p>No momento não estamos aceitando novos pedidos. Volte em breve!</p>
+                            <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-4 mx-4 rounded-r shadow-sm">
+                                <div className="flex items-start">
+                                    <span className="text-2xl mr-3">🚫</span>
+                                    <div>
+                                        <p className="font-bold text-lg">Loja Fechada</p>
+                                        <p>No momento não estamos aceitando pedidos.</p>
+                                        {openingHours && (
+                                            <div className="mt-2 text-sm bg-red-100/50 p-2 rounded border border-red-200">
+                                                <span className="font-bold">🕒 Horário de Atendimento:</span><br />
+                                                {openingHours}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                         )}
 

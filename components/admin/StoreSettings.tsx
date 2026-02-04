@@ -12,7 +12,8 @@ export default function StoreSettings() {
         address: '',
         phone: '',
         logo_url: '',
-        is_open: true
+        is_open: true,
+        opening_hours: ''
     })
 
     useEffect(() => {
@@ -48,7 +49,8 @@ export default function StoreSettings() {
                     address: settings.address,
                     phone: settings.phone,
                     logo_url: settings.logo_url,
-                    is_open: settings.is_open
+                    is_open: settings.is_open,
+                    opening_hours: settings.opening_hours
                 })
                 .eq('id', 1)
 
@@ -141,6 +143,19 @@ export default function StoreSettings() {
                             <p className="text-xs text-gray-500 mt-1">
                                 Dica: Faça upload de uma imagem em "Produtos" e copie o link, ou use um link externo.
                             </p>
+                        </div>
+
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                Horário de Funcionamento (Exibido quando a loja está fechada)
+                            </label>
+                            <input
+                                type="text"
+                                value={settings.opening_hours || ''}
+                                onChange={e => setSettings({ ...settings, opening_hours: e.target.value })}
+                                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-orange-500 outline-none"
+                                placeholder="Ex: Terça a Domingo das 18h às 23h"
+                            />
                         </div>
                     </div>
 
