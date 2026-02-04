@@ -13,6 +13,7 @@ import ProductsManager from '@/components/admin/ProductsManager'
 import CategoriesManager from '@/components/admin/CategoriesManager'
 import BannersManager from '@/components/admin/BannersManager'
 import StoreSettings from '@/components/admin/StoreSettings'
+import ExtrasManager from '@/components/admin/ExtrasManager'
 import PrinterConfig from '@/components/admin/PrinterConfig'
 import { OrderTicket } from '@/components/admin/OrderTicket'
 
@@ -232,13 +233,50 @@ export default function AdminDashboard() {
                 )
             )
 
+            const orderToPrint = orders.find(o => o.id === orderId)
+
             // Impressão Automática ao Aceitar (Status: novo -> em_preparo)
             if (newStatus === 'em_preparo' && printerConfig.autoPrint) {
-                const orderToPrint = orders.find(o => o.id === orderId)
                 if (orderToPrint) {
                     console.log('🖨️ Iniciando impressão automática...')
                     handlePrintOrder(orderToPrint)
                 }
+            }
+
+            // Notificação WhatsApp (Abre WhatsApp Web)
+            if (orderToPrint && ['em_preparo', 'saiu_entrega', 'finalizado'].includes(newStatus)) {
+                // Pequeno delay para não sobrepor com a impressão
+                setTimeout(() => {
+                    if (confirm('📲 Enviar status no WhatsApp do cliente?')) {
+                        let message = ''
+                        const customerName = orderToPrint.customer_name.split(' ')[0]
+                        const orderNum = orderToPrint.order_number ? `#${orderToPrint.order_number}` : ''
+
+                        switch (newStatus) {
+                            case 'em_preparo':
+                                message = `Olá *${customerName}*! 👋\n\nSeu pedido *${orderNum}* foi ACEITO e já está sendo preparado! 🍔🔥\n\nAvisaremos quando sair para entrega!`
+                                break
+                            case 'saiu_entrega':
+                                message = `Opa *${customerName}*! 🛵💨\n\nSeu pedido *${orderNum}* SAIU PARA ENTREGA!\n\nFique atento(a) ao entregador.`
+                                break
+                            case 'finalizado':
+                                message = `Pedido entregue! ✅\n\nEsperamos que goste do seu lanche! 😋\nObrigado pela preferência!`
+                                break
+                        }
+
+                        if (message) {
+                            // Limpar telefone (manter apenas números)
+                            let phone = orderToPrint.customer_phone.replace(/\D/g, '')
+                            // Se não tiver 55 no início e tiver 10 ou 11 dígitos, adiciona
+                            if (phone.length >= 10 && phone.length <= 11) {
+                                phone = '55' + phone
+                            }
+
+                            const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
+                            window.open(url, '_blank')
+                        }
+                    }
+                }, 1000)
             }
         }
     }
