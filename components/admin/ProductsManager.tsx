@@ -8,6 +8,7 @@ import ProductForm from './ProductForm'
 export default function ProductsManager() {
     const [products, setProducts] = useState<Product[]>([])
     const [categories, setCategories] = useState<Category[]>([])
+    const [extrasGroups, setExtrasGroups] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [isEditing, setIsEditing] = useState(false)
     const [editingProduct, setEditingProduct] = useState<Product | null>(null)
@@ -27,6 +28,14 @@ export default function ProductsManager() {
 
             if (catError) throw catError
 
+            // Buscar grupos de adicionais
+            const { data: extrasData, error: extrasError } = await supabase
+                .from('extras_groups')
+                .select('*')
+                .order('name')
+
+            if (extrasError) throw extrasError
+
             // Buscar produtos (admin vê todos devido ao novo RLS)
             const { data: productsData, error: prodError } = await supabase
                 .from('products')
@@ -36,6 +45,7 @@ export default function ProductsManager() {
             if (prodError) throw prodError
 
             setCategories(categoriesData || [])
+            setExtrasGroups(extrasData || [])
             setProducts(productsData || [])
         } catch (error) {
             console.error('Erro ao carregar dados:', error)
@@ -97,6 +107,7 @@ export default function ProductsManager() {
             <ProductForm
                 product={editingProduct}
                 categories={categories}
+                extrasGroups={extrasGroups}
                 onSave={handleSave}
                 onCancel={handleCancel}
             />

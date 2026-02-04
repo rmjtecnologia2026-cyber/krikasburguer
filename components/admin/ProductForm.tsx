@@ -6,12 +6,14 @@ import { supabase, Product, Category } from '@/lib/supabase'
 interface ProductFormProps {
     product?: Product | null
     categories: Category[]
+    extrasGroups?: any[] // New prop
     onSave: () => void
     onCancel: () => void
 }
 
-export default function ProductForm({ product, categories, onSave, onCancel }: ProductFormProps) {
+export default function ProductForm({ product, categories, extrasGroups = [], onSave, onCancel }: ProductFormProps) {
     const [loading, setLoading] = useState(false)
+    const [selectedExtras, setSelectedExtras] = useState<string[]>([])
     const [formData, setFormData] = useState({
         name: product?.name || '',
         description: product?.description || '',
@@ -19,8 +21,27 @@ export default function ProductForm({ product, categories, onSave, onCancel }: P
         category_id: product?.category_id || '',
         image_url: product?.image_url || '',
         is_featured: product?.is_featured || false,
-        is_active: product?.is_active ?? true, // Novo padrão true, edição usa valor do banco
+        is_active: product?.is_active ?? true,
     })
+
+    // Carregar extras do produto se estiver editando
+    useState(() => {
+        if (product?.id) {
+            checkProductExtras()
+        }
+    })
+
+    async function checkProductExtras() {
+        if (!product?.id) return
+        const { data } = await supabase
+            .from('product_extras')
+            .select('group_id')
+            .eq('product_id', product.id)
+
+        if (data) {
+            setSelectedExtras(data.map(d => d.group_id))
+        }
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -37,19 +58,38 @@ export default function ProductForm({ product, categories, onSave, onCancel }: P
                 is_active: formData.is_active,
             }
 
-            if (product?.id) {
+            let productId = product?.id
+
+            if (productId) {
                 // Atualizar
                 const { error } = await supabase
                     .from('products')
                     .update(productData)
-                    .eq('id', product.id)
+                    .eq('id', productId)
                 if (error) throw error
             } else {
                 // Criar
-                const { error } = await supabase
+                const { data, error } = await supabase
                     .from('products')
                     .insert([productData])
+                    .select()
+                    .single()
+
                 if (error) throw error
+                productId = data.id
+            }
+
+            // Atualizar Extras (Remove tudo e adiciona os selecionados)
+            if (productId) {
+                await supabase.from('product_extras').delete().eq('product_id', productId)
+
+                if (selectedExtras.length > 0) {
+                    const extrasToInsert = selectedExtras.map(groupId => ({
+                        product_id: productId,
+                        group_id: groupId
+                    }))
+                    await supabase.from('product_extras').insert(extrasToInsert)
+                }
             }
 
             onSave()
@@ -58,6 +98,14 @@ export default function ProductForm({ product, categories, onSave, onCancel }: P
             alert('Erro ao salvar o produto.')
         } finally {
             setLoading(false)
+        }
+    }
+
+    const toggleExtra = (groupId: string) => {
+        if (selectedExtras.includes(groupId)) {
+            setSelectedExtras(selectedExtras.filter(id => id !== groupId))
+        } else {
+            setSelectedExtras([...selectedExtras, groupId])
         }
     }
 
@@ -118,6 +166,26 @@ export default function ProductForm({ product, categories, onSave, onCancel }: P
                             ))}
                         </select>
                     </div>
+
+                    {/* Seleção de Grupos de Adicionais */}
+                    {extrasGroups.length > 0 && (
+                        <div className="col-span-2 bg-orange-50 p-4 rounded-xl border border-orange-100">
+                            <h3 className="font-bold text-gray-800 mb-3 block">Grupos de Adicionais</h3>
+                            <div className="grid grid-cols-2 gap-3">
+                                {extrasGroups.map(group => (
+                                    <label key={group.id} className="flex items-center gap-2 cursor-pointer hover:bg-white p-2 rounded transition">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedExtras.includes(group.id)}
+                                            onChange={() => toggleExtra(group.id)}
+                                            className="rounded text-orange-600 focus:ring-orange-500"
+                                        />
+                                        <span className="text-sm text-gray-700">{group.name}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     <div className="col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">URL da Imagem</label>
