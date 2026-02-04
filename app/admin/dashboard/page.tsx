@@ -89,17 +89,50 @@ export default function AdminDashboard() {
 
     const playNotificationSound = () => {
         try {
+            // Criar e tocar o áudio
             const audio = new Audio('/sounds/notification.mp3')
-            audio.volume = 1.0 // Volume máximo
-            audio.play()
-                .then(() => console.log('🔊 Som tocado com sucesso'))
-                .catch(e => {
-                    console.log('⚠️ Erro ao tocar som:', e)
-                    // Tentar novamente após interação do usuário
-                    document.addEventListener('click', () => {
-                        audio.play().catch(() => { })
-                    }, { once: true })
+            audio.volume = 1.0
+
+            // Tentar tocar imediatamente
+            const playPromise = audio.play()
+
+            if (playPromise !== undefined) {
+                playPromise
+                    .then(() => {
+                        console.log('🔊 Som tocado com sucesso')
+                    })
+                    .catch(e => {
+                        console.log('⚠️ Erro ao tocar som:', e)
+                        // Se falhar, tentar novamente após qualquer interação
+                        const tryAgain = () => {
+                            audio.play().catch(() => { })
+                            document.removeEventListener('click', tryAgain)
+                            document.removeEventListener('keydown', tryAgain)
+                        }
+                        document.addEventListener('click', tryAgain, { once: true })
+                        document.addEventListener('keydown', tryAgain, { once: true })
+                    })
+            }
+
+            // Tentar mostrar notificação do navegador (funciona mesmo com aba minimizada)
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('🔔 Novo Pedido!', {
+                    body: 'Um novo pedido chegou!',
+                    icon: '/favicon.ico',
+                    badge: '/favicon.ico',
+                    tag: 'new-order',
+                    requireInteraction: true
                 })
+            } else if ('Notification' in window && Notification.permission !== 'denied') {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        new Notification('🔔 Novo Pedido!', {
+                            body: 'Um novo pedido chegou!',
+                            icon: '/favicon.ico'
+                        })
+                    }
+                })
+            }
         } catch (error) {
             console.error('❌ Erro ao criar áudio:', error)
         }
@@ -201,9 +234,9 @@ export default function AdminDashboard() {
                 {/* New Order Alert */}
                 {newOrderAlert && orders.length > 0 && orders[0].status === 'novo' && (
                     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                        <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-8 relative animate-bounce">
+                        <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-8 relative">
                             <div className="text-center mb-6">
-                                <div className="text-6xl mb-4 animate-pulse">🔔</div>
+                                <div className="text-6xl mb-4">🔔</div>
                                 <h2 className="text-3xl font-bold text-orange-600 mb-2">Novo Pedido!</h2>
                             </div>
 
