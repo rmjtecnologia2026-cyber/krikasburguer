@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase, Banner as BannerType } from '@/lib/supabase-browser'
+import { supabase } from '@/lib/supabase-browser'
+import { Banner as BannerType } from '@/lib/supabase'
 import Image from 'next/image'
 
 export default function Banner() {
