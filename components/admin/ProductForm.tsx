@@ -179,6 +179,38 @@ export default function ProductForm({ product, categories, extrasGroups = [], on
         }
     }
 
+    const handleSmartDescription = () => {
+        const title = formData.name.trim()
+        const rawDescription = formData.description.trim()
+
+        if (!title) {
+            alert('Por favor, preencha o nome do produto primeiro.')
+            return
+        }
+
+        // Se a descrição estiver vazia, usar um placeholder genérico
+        const ingredients = rawDescription || 'ingredientes selecionados, molho especial e muito sabor'
+
+        // Templates focados em SEO e conversão
+        const templates = [
+            `Experimente o nosso delicioso ${title}! 🍔 Feito com ${ingredients}, é a escolha perfeita para matar sua fome. Sabor artesanal e qualidade que você só encontra aqui no Krikas Burguer. Peça já o seu delivery! 🚀`,
+            `${title}: O sabor que você estava procurando! 😋 Preparado com ${ingredients}. Uma combinação irresistível para quem ama lanches de verdade. Entregamos quentinho na sua casa. Aproveite! 🔥`,
+            `Conheça o ${title}, nosso lanche especial feito com ${ingredients}. Ingredientes frescos e suculentos para uma experiência única. 🍔✨ Ideal para o seu jantar hoje. Peça agora pelo app!`,
+            `Matador de fome: ${title}! 💥 Recheado com ${ingredients}. Um dos mais pedidos da casa. Sabor, qualidade e preço justo. Não fique na vontade, peça já! 🛵💨`
+        ]
+
+        // Escolher template aleatório
+        const randomTemplate = templates[Math.floor(Math.random() * templates.length)]
+
+        // Remover pontos duplicados ou espaços extras que podem ter surgido
+        const cleanDescription = randomTemplate
+            .replace(/\.\./g, '.')
+            .replace(/\s+/g, ' ')
+            .trim()
+
+        setFormData(prev => ({ ...prev, description: cleanDescription }))
+    }
+
     return (
         <div className="bg-white rounded-2xl shadow-lg p-8 max-w-2xl mx-auto">
             <h2 className="text-2xl font-bold text-gray-800 mb-6">
@@ -200,13 +232,23 @@ export default function ProductForm({ product, categories, extrasGroups = [], on
                     </div>
 
                     <div className="col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+                        <div className="flex justify-between items-center mb-2">
+                            <label className="block text-sm font-medium text-gray-700">Descrição</label>
+                            <button
+                                type="button"
+                                onClick={handleSmartDescription}
+                                className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-bold hover:bg-purple-200 transition-colors flex items-center gap-1"
+                                title="Gera uma descrição vendedora baseada nos ingredientes digitados"
+                            >
+                                ✨ Melhorar com IA
+                            </button>
+                        </div>
                         <textarea
                             value={formData.description}
                             onChange={e => setFormData({ ...formData, description: e.target.value })}
                             rows={3}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
-                            placeholder="Ingredientes e detalhes..."
+                            placeholder="Digite os ingredientes básicos (ex: carne, salada, cheddar) e clique em Melhorar com IA..."
                         />
                     </div>
 
