@@ -145,6 +145,30 @@ export default function OrderEditor({ orderId, onClose, onUpdate }: OrderEditorP
         }
     }
 
+    const handleDeleteOrder = async () => {
+        if (!confirm('⚠️ ATENÇÃO: Deletar este pedido permanentemente? Esta ação não pode ser desfeita!')) return
+
+        setLoading(true)
+        try {
+            // Deletar o pedido (os order_items serão deletados automaticamente com CASCADE)
+            const { error } = await supabase
+                .from('orders')
+                .delete()
+                .eq('id', orderId)
+
+            if (error) throw error
+
+            alert('✅ Pedido deletado com sucesso!')
+            onUpdate()
+            onClose()
+        } catch (error: any) {
+            console.error('Error deleting order:', error)
+            alert(`❌ Erro ao deletar pedido: ${error.message}\n\nVocê executou o script fix_delete_orders_v2.sql no Supabase?`)
+        } finally {
+            setLoading(false)
+        }
+    }
+
     const filteredProducts = products.filter(p =>
         p.name.toLowerCase().includes(searchTerm.toLowerCase())
     )
@@ -257,26 +281,40 @@ export default function OrderEditor({ orderId, onClose, onUpdate }: OrderEditorP
                     </div>
                 </div>
 
-                <div className="p-6 border-t border-gray-100 bg-gray-50 rounded-b-2xl flex justify-between items-center">
-                    <div>
-                        <p className="text-gray-500 text-sm">Novo Total</p>
-                        <p className="text-3xl font-bold text-orange-600">
-                            R$ {items.reduce((s, i) => s + i.subtotal, 0).toFixed(2)}
-                        </p>
+                <div className="p-6 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
+                    <div className="flex justify-between items-center mb-4">
+                        <div>
+                            <p className="text-gray-500 text-sm">Novo Total</p>
+                            <p className="text-3xl font-bold text-orange-600">
+                                R$ {items.reduce((s, i) => s + i.subtotal, 0).toFixed(2)}
+                            </p>
+                        </div>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={onClose}
+                                className="px-6 py-3 bg-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-300 transition"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleSave}
+                                disabled={loading}
+                                className="px-8 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition"
+                            >
+                                {loading ? 'Salvando...' : 'Salvar Alterações'}
+                            </button>
+                        </div>
                     </div>
-                    <div className="flex gap-3">
+
+                    {/* Botão Deletar Pedido */}
+                    <div className="pt-4 border-t border-gray-200">
                         <button
-                            onClick={onClose}
-                            className="px-6 py-3 bg-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-300 transition"
-                        >
-                            Cancelar
-                        </button>
-                        <button
-                            onClick={handleSave}
+                            onClick={handleDeleteOrder}
                             disabled={loading}
-                            className="px-8 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition"
+                            className="w-full py-2 bg-red-50 text-red-600 font-semibold rounded-lg hover:bg-red-100 transition-colors flex items-center justify-center gap-2 border border-red-200"
                         >
-                            {loading ? 'Salvando...' : 'Salvar Alterações'}
+                            <span>🗑️</span>
+                            Deletar Pedido Permanentemente
                         </button>
                     </div>
                 </div>
