@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase, Category } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase-browser'
+import { Category } from '@/lib/supabase'
 import CategoryList from './CategoryList'
 import CategoryForm from './CategoryForm'
 
