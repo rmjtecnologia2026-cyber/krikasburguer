@@ -168,7 +168,7 @@ export default function AdminDashboard() {
                             <h2 className="text-3xl font-bold text-center mb-4">🔔 Novo Pedido!</h2>
                             <div className="flex gap-4">
                                 <button onClick={() => setNewOrderAlert(false)} className="flex-1 py-3 bg-gray-200 rounded-xl font-bold">Fechar</button>
-                                <button onClick={() => { updateOrderStatus(orders[0].id, 'em_preparo'); setNewOrderAlert(false) }} className="flex-1 py-3 bg-green-500 text-white rounded-xl font-bold">ACEITAR</button>
+                                <button onClick={() => { updateOrderStatus(orders[0].id, 'em_preparo'); setNewOrderAlert(false) }} className="flex-1 py-3 bg-blue-500 text-white rounded-xl font-bold">ACEITAR</button>
                             </div>
                         </div>
                     </div>
@@ -187,7 +187,7 @@ export default function AdminDashboard() {
                         {/* Notification Button Test */}
                         <button
                             onClick={playNotificationSound}
-                            className="bg-white p-2 rounded-full shadow-sm text-gray-400 hover:text-orange-500"
+                            className="bg-white p-2 rounded-full shadow-sm text-gray-400 hover:text-blue-500"
                             title="Testar Som"
                         >
                             🔊

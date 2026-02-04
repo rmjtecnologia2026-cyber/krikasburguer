@@ -37,7 +37,7 @@ export type Banner = {
   created_at: string
 }
 
-export type OrderStatus = 'novo' | 'em_preparo' | 'saiu_entrega' | 'finalizado'
+export type OrderStatus = 'novo' | 'em_preparo' | 'saiu_entrega' | 'finalizado' | 'cancelado'
 
 export type Order = {
   id: string
@@ -50,6 +50,7 @@ export type Order = {
   created_at: string
   payment_method?: string
   change_for?: string
+  cancellation_reason?: string
 }
 
 export type OrderItem = {
