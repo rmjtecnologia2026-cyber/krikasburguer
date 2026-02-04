@@ -8,10 +8,11 @@ import ProductsManager from '@/components/admin/ProductsManager'
 import CategoriesManager from '@/components/admin/CategoriesManager'
 import BannersManager from '@/components/admin/BannersManager'
 import StoreSettings from '@/components/admin/StoreSettings'
+import ExtrasManager from '@/components/admin/ExtrasManager'
 
 export default function AdminDashboard() {
     const router = useRouter()
-    const [activeTab, setActiveTab] = useState<'orders' | 'history' | 'products' | 'categories' | 'banners' | 'settings'>('orders')
+    const [activeTab, setActiveTab] = useState<'orders' | 'history' | 'products' | 'categories' | 'banners' | 'settings' | 'extras'>('orders')
     const [orders, setOrders] = useState<Order[]>([])
     const [loading, setLoading] = useState(true)
     const [newOrderAlert, setNewOrderAlert] = useState(false)
@@ -187,6 +188,15 @@ export default function AdminDashboard() {
                         🍕 Produtos
                     </button>
                     <button
+                        onClick={() => setActiveTab('extras')}
+                        className={`px-6 py-3 rounded-xl font-semibold transition-all whitespace-nowrap ${activeTab === 'extras'
+                            ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg'
+                            : 'text-gray-600 hover:bg-gray-100'
+                            }`}
+                    >
+                        ➕ Adicionais
+                    </button>
+                    <button
                         onClick={() => setActiveTab('categories')}
                         className={`px-6 py-3 rounded-xl font-semibold transition-all whitespace-nowrap ${activeTab === 'categories'
                             ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg'
@@ -322,6 +332,10 @@ export default function AdminDashboard() {
 
                 {activeTab === 'settings' && (
                     <StoreSettings />
+                )}
+
+                {activeTab === 'extras' && (
+                    <ExtrasManager />
                 )}
             </div>
         </div>

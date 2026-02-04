@@ -59,3 +59,21 @@ export type OrderItem = {
   quantity: number
   subtotal: number
 }
+
+export type ExtrasGroup = {
+  id: string
+  name: string
+  min_options: number
+  max_options: number
+  is_required: boolean
+  created_at: string
+}
+
+export type ExtrasOption = {
+  id: string
+  group_id: string
+  name: string
+  price: number
+  is_available: boolean
+  created_at: string
+}
