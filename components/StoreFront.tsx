@@ -68,7 +68,7 @@ export default function StoreFront({ categories, featuredProducts, productsByCat
                         <div className="flex overflow-x-auto gap-4 pb-4 -mx-4 px-4 snap-x snap-proximity hide-scrollbar touch-pan-x">
                             {featuredProducts.map(product => (
                                 <div key={product.id} className="min-w-[280px] md:min-w-[320px] snap-center first:pl-0 last:pr-4">
-                                    <ProductCard product={product} />
+                                    <ProductCard product={product} variant="vertical" />
                                 </div>
                             ))}
                         </div>
@@ -99,9 +99,9 @@ export default function StoreFront({ categories, featuredProducts, productsByCat
                             </div>
 
                             {/* Layout de lista vertical (Mobile friendly) */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
                                 {products.map(product => (
-                                    <ProductCard key={product.id} product={product} />
+                                    <ProductCard key={product.id} product={product} variant="responsive" />
                                 ))}
                             </div>
                         </section>
