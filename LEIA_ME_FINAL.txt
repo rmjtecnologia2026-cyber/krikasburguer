@@ -1,0 +1,6 @@
+TAREFAS CONCLUÍDAS:
+1. Modal de Produtos: Ao clicar em "Adicionar", agora abre uma janela com foto ampliada e opção de selecionar Adicionais (se houver).
+2. Títulos/Banner: O texto "Delivery Express" foi removido. O banner agora mostra apenas o conteúdo cadastrado no admin.
+3. Metadata: Nome do site alterado para "Krikas Burguer".
+
+Tudo enviado para o GitHub. 🚀

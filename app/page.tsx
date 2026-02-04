@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import Banner from '@/components/Banner'
+import StoreHeader from '@/components/StoreHeader'
 import ProductCard from '@/components/ProductCard'
 import Cart from '@/components/Cart'
 
@@ -36,6 +37,9 @@ export default async function Home() {
   return (
     <main className="min-h-screen">
       <div className="container mx-auto px-4 py-8">
+        {/* Cabeçalho da Loja */}
+        <StoreHeader />
+
         {/* Banner Promocional */}
         <Banner />
 
