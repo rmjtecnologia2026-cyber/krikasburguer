@@ -3,6 +3,8 @@
 import { Product } from '@/lib/supabase'
 import { useCart } from '@/context/CartContext'
 import Image from 'next/image'
+import { useState } from 'react'
+import ProductModal from './ProductModal'
 
 type ProductCardProps = {
     product: Product
@@ -10,6 +12,7 @@ type ProductCardProps = {
 
 export default function ProductCard({ product }: ProductCardProps) {
     const { addItem } = useCart()
+    const [isModalOpen, setIsModalOpen] = useState(false)
 
     const handleAddToCart = () => {
         addItem({
@@ -59,11 +62,17 @@ export default function ProductCard({ product }: ProductCardProps) {
                     </span>
 
                     <button
-                        onClick={handleAddToCart}
+                        onClick={() => setIsModalOpen(true)}
                         className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-6 py-2.5 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95"
                     >
                         Adicionar
                     </button>
+
+                    <ProductModal
+                        product={product}
+                        isOpen={isModalOpen}
+                        onClose={() => setIsModalOpen(false)}
+                    />
                 </div>
             </div>
         </div>

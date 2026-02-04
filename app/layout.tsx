@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Delivery - Peça Agora!",
-  description: "Sistema de delivery moderno e rápido",
+  title: "Krikas Burguer",
+  description: "O melhor lanche da cidade!",
 };
 
 export default function RootLayout({

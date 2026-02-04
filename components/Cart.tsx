@@ -144,24 +144,33 @@ export default function Cart() {
 
                                                     <div className="flex-1">
                                                         <h3 className="font-semibold text-gray-800">{item.name}</h3>
-                                                        <p className="text-orange-600 font-bold">R$ {item.price.toFixed(2)}</p>
+                                                        <div className="flex flex-col">
+                                                            <p className="text-orange-600 font-bold">R$ {item.price.toFixed(2)}</p>
+                                                            {item.extras && item.extras.length > 0 && (
+                                                                <div className="text-xs text-gray-500 mt-1">
+                                                                    {item.extras.map(e => (
+                                                                        <span key={e.id} className="block">+ {e.name} (R$ {e.price.toFixed(2)})</span>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </div>
 
                                                         <div className="flex items-center gap-3 mt-2">
                                                             <button
-                                                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                                                onClick={() => updateQuantity(item.cartId, item.quantity - 1)}
                                                                 className="bg-gray-200 hover:bg-gray-300 rounded-full w-8 h-8 flex items-center justify-center font-bold transition-colors"
                                                             >
                                                                 -
                                                             </button>
                                                             <span className="font-semibold w-8 text-center">{item.quantity}</span>
                                                             <button
-                                                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                                                onClick={() => updateQuantity(item.cartId, item.quantity + 1)}
                                                                 className="bg-orange-500 hover:bg-orange-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold transition-colors"
                                                             >
                                                                 +
                                                             </button>
                                                             <button
-                                                                onClick={() => removeItem(item.id)}
+                                                                onClick={() => removeItem(item.cartId)}
                                                                 className="ml-auto text-red-500 hover:text-red-700 transition-colors"
                                                             >
                                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
