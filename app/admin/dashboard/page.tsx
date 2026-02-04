@@ -56,8 +56,6 @@ export default function AdminDashboard() {
                     setOrders(current => [payload.new as Order, ...current])
                     setNewOrderAlert(true)
                     playNotificationSound()
-
-                    setTimeout(() => setNewOrderAlert(false), 5000)
                 }
             )
             .subscribe()
@@ -114,14 +112,49 @@ export default function AdminDashboard() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Alerta de Novo Pedido */}
-            {newOrderAlert && (
-                <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-xl shadow-2xl z-50 animate-bounce">
-                    <div className="flex items-center gap-3">
-                        <span className="text-2xl">🔔</span>
-                        <div>
-                            <p className="font-bold">Novo Pedido!</p>
-                            <p className="text-sm">Um novo pedido foi recebido</p>
+            {/* Modal de Novo Pedido (Popup Automático) */}
+            {newOrderAlert && orders.length > 0 && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-fade-in">
+                    <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-8 transform animate-bounce-short relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-500 to-red-600" />
+
+                        <div className="text-center mb-6">
+                            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                                <span className="text-4xl">🔔</span>
+                            </div>
+                            <h2 className="text-3xl font-bold text-gray-800">Novo Pedido Chegou!</h2>
+                            <p className="text-gray-500 mt-2">Um cliente acabou de realizar um pedido.</p>
+                        </div>
+
+                        {/* Detalhes do Pedido Recente (Pega o primeiro da lista, que é o mais novo) */}
+                        <div className="bg-gray-50 rounded-xl p-5 mb-8 border border-gray-100">
+                            <div className="flex justify-between items-start mb-3">
+                                <h3 className="font-bold text-lg">{orders[0].customer_name}</h3>
+                                <span className="text-orange-600 font-bold text-xl">R$ {orders[0].total.toFixed(2)}</span>
+                            </div>
+                            <p className="text-sm text-gray-600 mb-1">📍 {orders[0].delivery_address}</p>
+                            <div className="mt-3 text-sm bg-white p-2 rounded border border-gray-200">
+                                <p><strong>Pagamento:</strong> {orders[0].payment_method === 'card' ? 'Cartão' : orders[0].payment_method === 'pix' ? 'Pix' : 'Dinheiro'}</p>
+                                {orders[0].change_for && <p className="text-orange-600">Troco para: {orders[0].change_for}</p>}
+                            </div>
+                        </div>
+
+                        <div className="flex gap-4">
+                            <button
+                                onClick={() => setNewOrderAlert(false)}
+                                className="flex-1 py-4 bg-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-300 transition"
+                            >
+                                Fechar
+                            </button>
+                            <button
+                                onClick={() => {
+                                    updateOrderStatus(orders[0].id, 'em_preparo')
+                                    setNewOrderAlert(false)
+                                }}
+                                className="flex-1 py-4 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition transform"
+                            >
+                                ACEITAR PEDIDO
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -239,39 +272,49 @@ export default function AdminDashboard() {
                                 <p className="text-gray-500 text-lg">Nenhum pedido ativo no momento</p>
                             </div>
                         ) : (
-                            orders.filter(o => o.status !== 'finalizado').map(order => (
-                                <div key={order.id} className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow border-l-4 border-orange-500">
-                                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                {orders.filter(o => o.status !== 'finalizado').map(order => (
+                                    <div key={order.id} className="bg-white rounded-xl shadow-lg p-4 hover:shadow-xl transition-shadow border-l-4 border-orange-500 relative flex flex-col justify-between min-h-[300px]">
                                         <div>
-                                            <h3 className="text-xl font-bold text-gray-800">{order.customer_name}</h3>
-                                            <p className="text-gray-600">📱 {order.customer_phone}</p>
-                                            <p className="text-gray-600">📍 {order.delivery_address}</p>
-                                            {order.observations && (
-                                                <p className="text-gray-500 text-sm mt-2">💬 {order.observations}</p>
-                                            )}
-                                        </div>
+                                            <div className="flex justify-between items-start mb-2">
+                                                <h3 className="text-lg font-bold text-gray-800 line-clamp-1" title={order.customer_name}>{order.customer_name}</h3>
+                                                <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${getStatusColor(order.status)}`}>
+                                                    {getStatusLabel(order.status)}
+                                                </span>
+                                            </div>
 
-                                        <div className="text-right">
-                                            <p className="text-3xl font-bold text-orange-600">
+                                            <div className="space-y-1 text-sm text-gray-600 mb-3">
+                                                <p>📱 {order.customer_phone}</p>
+                                                <p className="line-clamp-2" title={order.delivery_address}>📍 {order.delivery_address}</p>
+                                                <div className="bg-gray-50 p-2 rounded text-xs">
+                                                    <p>💰 Pagamento: <strong>{order.payment_method === 'card' ? 'Cartão' : order.payment_method === 'pix' ? 'Pix' : 'Dinheiro'}</strong></p>
+                                                    {order.change_for && <p className="text-orange-600">💵 Troco para: {order.change_for}</p>}
+                                                </div>
+                                                {order.observations && (
+                                                    <p className="text-gray-500 text-xs italic mt-1 bg-yellow-50 p-1 rounded">
+                                                        " {order.observations} "
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            <p className="text-2xl font-bold text-orange-600 mb-2">
                                                 R$ {order.total.toFixed(2)}
                                             </p>
-                                            <p className="text-gray-500 text-sm">
-                                                {new Date(order.created_at).toLocaleString('pt-BR')}
+                                            <p className="text-gray-400 text-xs mb-4">
+                                                {new Date(order.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} •
+                                                {new Date(order.created_at).toLocaleDateString('pt-BR')}
                                             </p>
-                                            <span className={`inline-block mt-2 px-3 py-1 rounded-full text-sm font-bold ${getStatusColor(order.status)}`}>
-                                                {getStatusLabel(order.status)}
-                                            </span>
+                                        </div>
+
+                                        <div className="flex flex-wrap gap-1 mt-auto">
+                                            <button onClick={() => updateOrderStatus(order.id, 'novo')} className={`flex-1 py-1 rounded-md text-xs font-semibold ${order.status === 'novo' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}>Novo</button>
+                                            <button onClick={() => updateOrderStatus(order.id, 'em_preparo')} className={`flex-1 py-1 rounded-md text-xs font-semibold ${order.status === 'em_preparo' ? 'bg-yellow-500 text-white' : 'bg-gray-100'}`}>Preparo</button>
+                                            <button onClick={() => updateOrderStatus(order.id, 'saiu_entrega')} className={`flex-1 py-1 rounded-md text-xs font-semibold ${order.status === 'saiu_entrega' ? 'bg-purple-500 text-white' : 'bg-gray-100'}`}>Entrega</button>
+                                            <button onClick={() => updateOrderStatus(order.id, 'finalizado')} className="w-full mt-1 py-2 rounded-md font-bold text-sm bg-green-100 text-green-700 hover:bg-green-500 hover:text-white transition-colors">✔ Finalizar</button>
                                         </div>
                                     </div>
-
-                                    <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-100">
-                                        <button onClick={() => updateOrderStatus(order.id, 'novo')} className={`px-4 py-2 rounded-full font-semibold transition-all ${order.status === 'novo' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>Novo</button>
-                                        <button onClick={() => updateOrderStatus(order.id, 'em_preparo')} className={`px-4 py-2 rounded-full font-semibold transition-all ${order.status === 'em_preparo' ? 'bg-yellow-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>Em Preparo</button>
-                                        <button onClick={() => updateOrderStatus(order.id, 'saiu_entrega')} className={`px-4 py-2 rounded-full font-semibold transition-all ${order.status === 'saiu_entrega' ? 'bg-purple-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>Saiu p/ Entrega</button>
-                                        <button onClick={() => updateOrderStatus(order.id, 'finalizado')} className={`px-4 py-2 rounded-full font-semibold transition-all ${order.status === 'finalizado' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-green-100 hover:text-green-700'}`}>✅ Finalizar</button>
-                                    </div>
-                                </div>
-                            ))
+                                ))}
+                            </div>
                         )}
                     </div>
                 )}
