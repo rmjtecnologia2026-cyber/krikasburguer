@@ -48,6 +48,8 @@ export type Order = {
   total: number
   status: OrderStatus
   created_at: string
+  payment_method?: string
+  change_for?: string
 }
 
 export type OrderItem = {

@@ -14,7 +14,9 @@ export default function Cart() {
         name: '',
         phone: '',
         address: '',
-        observations: ''
+        observations: '',
+        paymentMethod: 'card', // card, money, pix
+        changeFor: ''
     })
 
     const handleSubmitOrder = async (e: React.FormEvent) => {
@@ -33,7 +35,9 @@ export default function Cart() {
                     delivery_address: formData.address,
                     observations: formData.observations,
                     total: total,
-                    status: 'novo'
+                    status: 'novo',
+                    payment_method: formData.paymentMethod,
+                    change_for: formData.changeFor
                 })
                 .select()
                 .single()
@@ -69,7 +73,7 @@ export default function Cart() {
             clearCart()
             setIsCheckout(false)
             setIsOpen(false)
-            setFormData({ name: '', phone: '', address: '', observations: '' })
+            setFormData({ name: '', phone: '', address: '', observations: '', paymentMethod: 'card', changeFor: '' })
         } catch (error: any) {
             console.error('Erro detalhado ao criar pedido:', error)
             alert(error.message || 'Erro ao realizar pedido. Tente novamente.')
@@ -214,6 +218,73 @@ export default function Cart() {
                                             placeholder="Rua, número, bairro, cidade"
                                         />
                                     </div>
+
+                                    {/* Método de Pagamento */}
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                            Forma de Pagamento *
+                                        </label>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <label className={`flex items-center justify-center p-3 rounded-xl border-2 cursor-pointer transition-all ${formData.paymentMethod === 'card'
+                                                ? 'border-orange-500 bg-orange-50 text-orange-700'
+                                                : 'border-gray-200 hover:border-gray-300'
+                                                }`}>
+                                                <input
+                                                    type="radio"
+                                                    name="payment"
+                                                    value="card"
+                                                    className="hidden"
+                                                    checked={formData.paymentMethod === 'card'}
+                                                    onChange={e => setFormData({ ...formData, paymentMethod: e.target.value, changeFor: '' })}
+                                                />
+                                                💳 Cartão
+                                            </label>
+                                            <label className={`flex items-center justify-center p-3 rounded-xl border-2 cursor-pointer transition-all ${formData.paymentMethod === 'money'
+                                                ? 'border-orange-500 bg-orange-50 text-orange-700'
+                                                : 'border-gray-200 hover:border-gray-300'
+                                                }`}>
+                                                <input
+                                                    type="radio"
+                                                    name="payment"
+                                                    value="money"
+                                                    className="hidden"
+                                                    checked={formData.paymentMethod === 'money'}
+                                                    onChange={e => setFormData({ ...formData, paymentMethod: e.target.value })}
+                                                />
+                                                💵 Dinheiro
+                                            </label>
+                                            <label className={`flex items-center justify-center p-3 rounded-xl border-2 cursor-pointer transition-all ${formData.paymentMethod === 'pix'
+                                                ? 'border-orange-500 bg-orange-50 text-orange-700'
+                                                : 'border-gray-200 hover:border-gray-300'
+                                                }`}>
+                                                <input
+                                                    type="radio"
+                                                    name="payment"
+                                                    value="pix"
+                                                    className="hidden"
+                                                    checked={formData.paymentMethod === 'pix'}
+                                                    onChange={e => setFormData({ ...formData, paymentMethod: e.target.value, changeFor: '' })}
+                                                />
+                                                💠 Pix
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    {/* Troco */}
+                                    {formData.paymentMethod === 'money' && (
+                                        <div className="animate-fade-in">
+                                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                                Precisa de troco para quanto?
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={formData.changeFor}
+                                                onChange={(e) => setFormData({ ...formData, changeFor: e.target.value })}
+                                                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all"
+                                                placeholder="Ex: 50,00 (Deixe vazio se não precisar)"
+                                            />
+                                        </div>
+                                    )}
 
                                     <div>
                                         <label className="block text-sm font-semibold text-gray-700 mb-2">
