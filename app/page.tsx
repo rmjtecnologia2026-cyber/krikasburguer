@@ -33,7 +33,7 @@ export default async function Home() {
   })) || []
 
   return (
-    <main>
+    <main className="overflow-x-hidden">
       <StoreFront
         categories={categories || []}
         featuredProducts={featuredProducts || []}
